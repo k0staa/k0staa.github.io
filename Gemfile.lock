@@ -198,9 +198,11 @@ PLATFORMS
 
 DEPENDENCIES
   github-pages
-  jekyll-feed (~> 0.6)
-  minima (~> 2.0)
-  tzinfo-data
+  jekyll-feed
+  jekyll-gist
+  jekyll-paginate
+  jekyll-sitemap
+  jemoji
 
 BUNDLED WITH
    1.15.1
