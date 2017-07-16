@@ -27,12 +27,6 @@ markdown: kramdown
 theme: minima
 gems:
   - jekyll-feed
-  - jekyll-analytics
-
-jekyll_analytics:
-  GoogleAnalytics:          # Add, if you want to track with Google Analytics
-    id: UA-102651793-1      # Required - replace with your tracking id
-    anonymizeIp: false      # Optional - Default: false - set to true for anonymized tracking
 
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
