@@ -13,7 +13,7 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-title: Code-Addict
+title: code-addict
 email: m.kostewicz84@gmail.com
 description: > # this means to ignore newlines until "baseurl:"
   Blog about software development. It's my hobby to write lines of code and deepen new technologies and I'd like to share my passion with you! I will write about Java, Python, C#, C++,realtional and not relational databases, machine learning amd data mining.
@@ -27,6 +27,12 @@ markdown: kramdown
 theme: minima
 gems:
   - jekyll-feed
+  - jekyll-analytics
+
+jekyll_analytics:
+  GoogleAnalytics:          # Add, if you want to track with Google Analytics
+    id: UA-102651793-1      # Required - replace with your tracking id
+    anonymizeIp: false      # Optional - Default: false - set to true for anonymized tracking
 
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
