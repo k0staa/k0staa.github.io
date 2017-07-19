@@ -1,5 +1,5 @@
 ---
-title:  "Spring Security with Active Directory and mapping Active Directory groups to roles/privileges taken from database configuration."
+title:  "Spring Security with Active Directory and mapping Active Directory groups to roles or privileges taken from database configuration."
 date:   2017-07-18 20:29:53 +0200
 categories: spring spring-boot security ldap
 ---
