@@ -1,7 +1,13 @@
 ---
 title:  "Spring Security with Active Directory. Mapping LDAP groups to roles from database configuration."
+excerpt: "Shortest way to configure Spring Security with Active Directory"
+header:
+  overlay_image: /assets/images/post_teaser.jpeg
+  overlay_filter: 0.5 # same as adding an opacity of 0.5 to a black background
+  caption: "Photo credit: [Markus Spiske](http://freeforcommercialuse.net)"
 date:   2017-07-18 20:29:53 +0200
-categories: spring spring-boot security ldap
+categories: spring security
+tags: spring security ldap active-directory spring-boot
 ---
  		
 Shortest way to configure Spring Security with Active Directory and map Active Directory groups to your privileges/roles configuration from database and use them in application.
