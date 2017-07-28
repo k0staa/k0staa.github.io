@@ -179,7 +179,7 @@ timezone: "Europe/Warsaw"  # http://en.wikipedia.org/wiki/List_of_tz_database_ti
 
 
 # Plugins (previously gems:)
-plugins_dir:
+gems:
   - jekyll-paginate
   - jekyll-sitemap
   - jekyll-gist
@@ -187,12 +187,12 @@ plugins_dir:
   - jemoji
 
 # mimic GitHub Pages with --safe
-whitelist:
-  - jekyll-paginate
-  - jekyll-sitemap
-  - jekyll-gist
-  - jekyll-feed
-  - jemoji
+#whitelist:
+#  - jekyll-paginate
+#  - jekyll-sitemap
+#  - jekyll-gist
+#  - jekyll-feed
+#  - jemoji
 
 
 # Archives
