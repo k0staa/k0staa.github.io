@@ -4,7 +4,7 @@ title: Few words about blog
 permalink: /about/
 ---
 
- Congratulations! You choose right path and enter my blog ;) I start it long time ago but unfortunatly I haven't got much time and I just forgot about it... but now time has come to clean it up and move to another level.
+ Congratulations! You choose right path and enter my blog :sunglasses:. I start it long time ago but unfortunatly I haven't got much time and I just forgot about it... but now time has come to clean it up and move to another level.
 
 I will try to talk about the following topics:
   * Java Programming language and all kind of it's flavours,

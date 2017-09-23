@@ -6,7 +6,6 @@ header:
   overlay_filter: 0.5 # same as adding an opacity of 0.5 to a black background
   caption: "Photo credit: [Markus Spiske](http://freeforcommercialuse.net)"
 date:   2017-07-23 10:30:00 +0200
-categories: spring wildfly
 tags: spring spring-boot wildlfy jmx
 ---
  		

@@ -6,7 +6,6 @@ header:
   overlay_filter: 0.5 # same as adding an opacity of 0.5 to a black background
   caption: "Photo credit: [Markus Spiske](http://freeforcommercialuse.net)"
 date:   2017-07-18 20:29:53 +0200
-categories: spring security
 tags: spring security ldap active-directory spring-boot
 ---
  		

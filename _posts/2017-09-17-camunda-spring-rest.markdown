@@ -6,7 +6,6 @@ header:
   overlay_filter: 0.5 # same as adding an opacity of 0.5 to a black background
   caption: "Photo credit: [Markus Spiske](http://freeforcommercialuse.net)"
 date:   2017-09-17 18:00:00 +0200
-categories: spring camunda
 tags: spring spring-boot camunda rest
 ---
 I recently started working on an application that uses Camunda. The application uses the Camunda as standalone (separate) application using its REST API, and of course it is very well documented, however, I noticed that sometimes there is a need to send a request from Camunda to the application.	
