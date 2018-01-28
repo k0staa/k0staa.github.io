@@ -1,6 +1,6 @@
 ---
-title:  "Microsoft Reporting Services URL Rest Template Client using Spring Boot 1.5 with NTLM authentication. "
-excerpt: "How to download report drom Microsoft Reporting Services using URL."
+title:  "Microsoft Reporting Services URL client using Spring Boot 1.5 RestRemplate with NTLM authentication."
+excerpt: "How to download report from Microsoft Reporting Services using URL request. Configuring Spring RestTemplate with NTLM authentication."
 header:
   overlay_image: /assets/images/post_teaser.jpeg
   overlay_filter: 0.5 # same as adding an opacity of 0.5 to a black background
@@ -12,9 +12,9 @@ tags: spring spring-boot reporting-services rest
  - First using a URL query.
  - Second using SOAP Web Service (I will explain this method in future post).
 
-In this post I will describe first (simpler) method. Using this method, you can connect to almost every version of Reporting Services it must be configured beforehand (in particular, [Web Service URL Configuration](https://docs.microsoft.com/en-us/sql/reporting-services/install-windows/configure-a-url-ssrs-configuration-manager)). 
+In this post I will describe first (simpler) method. Using this method, you can connect to almost every version of Reporting Services but it must be configured beforehand (in particular, [Web Service URL Configuration](https://docs.microsoft.com/en-us/sql/reporting-services/install-windows/configure-a-url-ssrs-configuration-manager)). 
 
-To create an application I use spring boot version 1.5 and Apache HTTP Components library to configure the appropriate HTTP client with NTLM authentication (default authentication in Reporting Services)
+To create an application I use Spring Boot version 1.5 and Apache HTTP Components library to configure the appropriate HTTP client with NTLM authentication (default authentication in Reporting Services)
 
 I have my application builded with Maven. This is the whole `pom.xml` file:
 ~~~ xml
@@ -83,9 +83,20 @@ I have my application builded with Maven. This is the whole `pom.xml` file:
 
 ~~~
 
-As you can see I added just `org.apache.httpcomponents.httpclient` and `org.projectlombok.lombok` (you can omit the lombok because I used it to simplify logging)
-Now let's create REST Template configruation (with NTLM Authentication configuration):
+As you can see I added just `org.apache.httpcomponents.httpclient` and `org.projectlombok.lombok` (you can omit the lombok because I used it to simplify logging).
+Now let's create REST Template configuration (with NTLM authentication configuration):
 ~~~ java
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
+
 @Configuration
 public class ReportingServicesHTTPClientConfiguration {
 
@@ -116,7 +127,7 @@ public class ReportingServicesHTTPClientConfiguration {
     }
 }
 ~~~
-As you can see the configuration is quite simple. The most important element is to configure NTLM authentication. I noticed that the 3rd parameter of the NTCredentials class is unnecessary, but look at the documentation of the class because maybe in your case it should be set.
+Configuration is quite simple. The most important element is to configure NTLM authentication. I noticed that the 3rd parameter of the NTCredentials class is unnecessary, but look at the documentation of the class because maybe in your case it should be set.
 
 Now we can create simple client to make connection to Reporting Services.
 ~~~ java
@@ -127,9 +138,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-/**
- * Created by Michal Kostewicz on 23.01.18.
- */
 @Component
 public class ReportingServicesClient {
     private static String FORMAT_URL_PART = "&rs:Format=";
@@ -149,8 +157,9 @@ public class ReportingServicesClient {
 }
 
 ~~~
-As you can see the only required thing here is to setup proper reporting Services URL (configured in Reporting Services configuration). I pass report name and report format parameters to method which return report as byte array.
-I create simple test to test client connection.
+As shown on listing the only required thing here is to setup proper reporting Services URL (configured in Reporting Services configuration). I pass report name and report format parameters to method which return report as byte array.
+
+I create simple unit test to test client connection.
 ~~~ java
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -180,6 +189,6 @@ public class ReportingServicesClientTest {
     }
 }
 ~~~
-Whole project is in my GitHub account: SSSSEEEEEEEEEEEEEEEEE
- This is it! You should now be able to send requests to Reporting Services and get reports. Thanks for reading!
+You can find whole project in my [GitHub account](https://github.com/k0staa/Code-Addict-Repos/tree/master/reporting-services)
+ This is it! You should now be able to send requests to Reporting Services and receive reports. Thanks for reading!
 
