@@ -1,5 +1,5 @@
 ---
-title:  "Microsoft Reporting Services URL client using Spring Boot 1.5 RestRemplate with NTLM authentication."
+title:  "Microsoft Reporting Services URL client using Spring Boot 1.5 RestTemplate with NTLM authentication."
 excerpt: "How to download report from Microsoft Reporting Services using URL request. Configuring Spring RestTemplate with NTLM authentication."
 header:
   overlay_image: /assets/images/post_teaser.jpeg
