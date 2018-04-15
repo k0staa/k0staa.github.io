@@ -5,7 +5,7 @@ header:
   overlay_image: /assets/images/post_teaser.jpeg
   overlay_filter: 0.5 # same as adding an opacity of 0.5 to a black background
   caption: "Photo credit: [Markus Spiske](http://freeforcommercialuse.net)"
-date:   2018-03-10 10:34:00 +0200
+date:   2018-04-14 18:00:00 +0200
 tags: tensorflow neural-network jupyter python
 ---
 Recently, I'm a bit fascinated by the stock market and I thought that I would combine my two passions and work a bit more on predicting the price of shares using neural networks.
