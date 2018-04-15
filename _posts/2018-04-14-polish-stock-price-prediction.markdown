@@ -8,7 +8,7 @@ header:
 date:   2018-03-10 10:34:00 +0200
 tags: tensorflow neural-network jupyter python
 ---
-Recently, I was a bit fascinated by the stock exchange and thought that I would combine my two passions and work a bit more on predicting the price of shares using neural networks.
+Recently, I'm a bit fascinated by the stock market and I thought that I would combine my two passions and work a bit more on predicting the price of shares using neural networks.
 The model of the network that works to solve such a problem is the RNN model, which allows you to predict the value of the next step by analyzing the current one.
 I found a wonderful blog post writed by [Lilian Weng](https://lilianweng.github.io/lil-log/2017/07/08/predict-stock-prices-using-RNN-part-1.html) with a description of a model that works well with the prediction of the American stock market. To use the Lilian code I decided to make a few changes and introduce some facilities such as:
  - The code was not prepared to work with Python version 3 and I had to adjust it to work with this version. I just prefer Python 3 and I think evertyhing new that is create should be write with newest version ;).
