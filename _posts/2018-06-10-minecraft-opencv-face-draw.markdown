@@ -1,5 +1,5 @@
 ---
-title:  "Draw image captured from camera in Minecraft using Python, OpenCV and Raspberry Jam Mod for Minecraft. "
+title:  "Drawing a picture captured by a webcam in the Minecraft game using Python, OpenCV and Raspberry Jam Mod for Minecraft. "
 excerpt: "How to capture picture from camera and draw it (in color) using multiple different blocks in Minecraft game."
 header:
   overlay_image: /assets/images/post_teaser.jpeg
