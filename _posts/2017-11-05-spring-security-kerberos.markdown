@@ -126,33 +126,56 @@ ldapsearch -Y GSS-SPNEGO -H ldap://activedirectoryserverhostname -b "dc = YOURDO
  Commands should end successfully. The address `activedirectoryserverhostname` is the host name of the Active Directory server obtained from hosts file or DNS server.
 
 ## Step three - Spring Security configruation
-Below is the configuration of Spring Security. Pay attention to the comments because there are the most important information:
+__UPDATED 2018-09-02__ Below is the configuration of Spring Security. Pay attention to the comments because there are the most important information:
 
 ~~~ java
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity;
+import org.springframework.security.kerberos.authentication.KerberosAuthenticationProvider;
+import org.springframework.security.kerberos.authentication.KerberosServiceAuthenticationProvider;
+import org.springframework.security.kerberos.authentication.sun.SunJaasKerberosClient;
+import org.springframework.security.kerberos.authentication.sun.SunJaasKerberosTicketValidator;
+import org.springframework.security.kerberos.web.authentication.SpnegoAuthenticationProcessingFilter;
+import org.springframework.security.kerberos.web.authentication.SpnegoEntryPoint;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.util.Assert;
+
 @Slf4j //Lombok annotation for logging
 @Configuration
 @EnableWebMvcSecurity
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
+    @Value("${security.keytab.file}")
+    private String keytabFilePath;
+
+    @Value("${security.service.principal}")
+    private String servicePrincipal;
+
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-            .exceptionHandling()
+                .exceptionHandling()
                 .authenticationEntryPoint(spnegoEntryPoint())
                 .and()
-            .authorizeRequests()
-                .antMatchers("/", "/home").permitAll()
+                .authorizeRequests()
                 .anyRequest().authenticated()
                 .and()
-            .formLogin()
-                .loginPage("/login").permitAll()
+                .formLogin()
                 .and()
-            .logout()
+                .logout()
                 .permitAll()
                 .and()
-            .addFilterBefore(
-                    spnegoAuthenticationProcessingFilter(),
-                    BasicAuthenticationFilter.class);
+                .addFilterBefore(
+                        spnegoAuthenticationProcessingFilter(),
+                        BasicAuthenticationFilter.class);
     }
 
     @Override
@@ -175,7 +198,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Bean
     public SpnegoEntryPoint spnegoEntryPoint() {
-        return new SpnegoEntryPoint("/login");
+        return new SpnegoEntryPoint("/");
     }
 
     @Bean
@@ -199,13 +222,14 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         return provider;
     }
 
-   @Bean
+    @Bean
     public SunJaasKerberosTicketValidator sunJaasKerberosTicketValidator() {
         SunJaasKerberosTicketValidator ticketValidator =
                 new SunJaasKerberosTicketValidator();
-        ticketValidator.setServicePrincipal("HTTP/applicationhost@YOURDOMAIN.COM"); //At this point, it must be according to what we were given in the commands from the first step.
-        FileSystemResource fs = new FileSystemResource("/opt/tomcat.keytab"); //Path to file tomcat.keytab
-        log.info("Initializing Kerberos KEYTAB file path: /opt/tomcat.keytab" );
+        ticketValidator.setServicePrincipal(servicePrincipal); //At this point, it must be according to what we were given in the
+        // commands from the first step.
+        FileSystemResource fs = new FileSystemResource(keytabFilePath); //Path to file tomcat.keytab
+        log.info("Initializing Kerberos KEYTAB file path:" + fs.getFilename() + " for principal: " + servicePrincipal + "file exist: " + fs.exists());
         Assert.notNull(fs.exists(), "*.keytab key must exist. Without that security is useless.");
         ticketValidator.setKeyTabLocation(fs);
         ticketValidator.setDebug(true); //Turn off when it will works properly,
@@ -217,6 +241,15 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         return new DummyUserDetailsService();
     }
 }
+~~~
+__UPDATED 2018-09-02__
+The `application.properties` file with the parameters used in `WebSecurityConfiguration.class`:
+
+~~~ bash
+security.basic.enabled=false
+security.keytab.file=/opt/tomcat.keytab
+security.service.principal=HTTP/applicationhost@YOURDOMAIN.COM
+server.port = 8080
 ~~~
 
 Below is a simple class needed to load detailed user data. The class is mock but you can use it and then extend. In real life example we would be probably reading information about user groups from Active Directory or database.
