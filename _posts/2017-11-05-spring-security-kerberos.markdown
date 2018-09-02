@@ -151,7 +151,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .and()
             .addFilterBefore(
-                    spnegoAuthenticationProcessingFilter(authenticationManagerBean()),
+                    spnegoAuthenticationProcessingFilter(),
                     BasicAuthenticationFilter.class);
     }
 
@@ -205,7 +205,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 new SunJaasKerberosTicketValidator();
         ticketValidator.setServicePrincipal("HTTP/applicationhost@YOURDOMAIN.COM"); //At this point, it must be according to what we were given in the commands from the first step.
         FileSystemResource fs = new FileSystemResource("/opt/tomcat.keytab"); //Path to file tomcat.keytab
-        log.info("Initializing Kerberos KEYTAB file path:" + keytabFilePath);
+        log.info("Initializing Kerberos KEYTAB file path: /opt/tomcat.keytab" );
         Assert.notNull(fs.exists(), "*.keytab key must exist. Without that security is useless.");
         ticketValidator.setKeyTabLocation(fs);
         ticketValidator.setDebug(true); //Turn off when it will works properly,
@@ -247,3 +247,6 @@ The solution may be to synchronize the machine time on which the application ser
 
 ## Summary
 That's it! You should be now automatically logged in to your application using Active Directory. Thanks for reading!
+
+## UPDATE 2018-09-02
+Many people have asked me so I've added a simple project to [GitHub](https://github.com/k0staa/Code-Addict-Repos/tree/master/active-directory)
