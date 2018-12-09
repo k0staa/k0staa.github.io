@@ -1,6 +1,6 @@
 ---
 title:  "Using Kafka Streams to search for suspicious traffic in log stream. "
-excerpt: "Searching for strange traffic in the log stream using Kafka streams. Joining of data streams and saving it in MongoDB. Data streaming from MongoDB with the help of Spring WebFlux. Everything written in Kotlin."
+excerpt: "Searching for suspicious traffic in the log stream using Kafka Streams. Joining streams and saving in MongoDB. Using HTML5 Server-Sent events to stream data from MongoDB with the help of Spring WebFlux. Everything written in Kotlin."
 header:
   overlay_image: /assets/images/post_teaser.jpeg
   overlay_filter: 0.5 # same as adding an opacity of 0.5 to a black background
@@ -11,7 +11,7 @@ tags: kafka streams kotlin webflux docker
 
 Detection of various anomalies in the data stream is a very common business need these days. Applications are often used by many users and thus generate a large amount of data.
 
-As part of the entertainment, I decided to create a tool that will detect specific requests (let's assume that they are potentially dangerous) in the log stream, and also combine different types of logs in the time window to provide more data. The application will save such search results in a MongoDB database, and also enable the display of this data through the REST controller. As I have never written anything in the Kotlin, I decided that the project will be written in this language.
+As part of the entertainment, I decided to create a tool that will detect specific requests (let's assume that they are potentially dangerous) in the log stream, and also combine different types of logs in the time window to provide more data for the end user. The application will save such search results in a MongoDB database, and also enable the display of this data through the REST controller. As I have never written anything in the Kotlin, I decided that the project will be written in this language.
 
 The Kafka and MongoDB instances are both needed to run the project, so for ease of use I have put the appropriate configurations for `docker-compose` in the `docker` directory. Just enter the directory and run `docker-compose up`.
 
@@ -134,7 +134,8 @@ class KafkaConsumerConfig {
 ~~~
 
 The `consumerProps()` method is required by `KafkaConsumer` and `KafkaReveiver` which both have the same task - to read Kafka's topics, but the latter does it in a reactive way. 
-The configuration of the `KafkaConsumer` and `KafkaReceiver` (`fun kafkaConsumer()`, `fun kafkaReceiver()`) it is left for testing purposes only because I do not send detected data to another topic (you can change that in `KafkaStreamConsumer` class). I left it if someone wanted to play with this and send data detected by the application to another Kafka topic and then pull it with the `KafkaConsumer` or `KafkaReciver`. 
+The configuration of the `KafkaConsumer` and `KafkaReceiver` (`fun kafkaConsumer()`, `fun kafkaReceiver()`) it is left for testing purposes only because I do not send detected data to another topic (you can change that in `KafkaStreamConsumer` class). I left it if someone wanted to play with this and send processed data to another Kafka topic and then pull it with the `KafkaConsumer` or `KafkaReciver`. 
+
 The most important in this class is the stream configuration which you can find in `kStreamsConfig()` method. You can really add a lot of parameters there but in my case these are only the most important, i.e. `BOOTSTRAP_SERVERS_CONFIG` which is address of Kafka running on my local docker. The `DEFAULT_KEY_*` and `DEFAULT_VALUE_*` parameters mean the default data types that the stream operates on but it can be configured also later when connecting to different topics.
 
 Let's take a look at the producer whose only task is to send up to two topics the standard logs for a given topic, and from time to time a row with suspicious data:
@@ -230,9 +231,9 @@ class KafkaStreamConsumer {
 
 In the `startProcessing()` method, we first create two streams (`dhcpStream` and `proxyStream`), and then combine them into one stream working in the time window (5000 ms) which has `FraudData` type and finally is filtered out using request address. In this simple case, suspicious data has the request address "http://strange.com". The `join` method links streams with their keys which in this case are source machine IP addresse (see` ProxyKeyValueMapper` and `DhcpKeyValueMapper` which maps data pulled from topic to key, value map). Finally, the data is saved in mongoDB.
 
-The data stored in mongoDB as suspicious can be seen by calling adrees [http://localhost:8080/mongo/frauds/stream](http://localhost:8080/mongo/frauds/stream). The controller supporting this request is shown below. It works with HTML 5 Server-Sent events technology:
+The data stored in mongoDB as suspicious can be seen by entering adrees [http://localhost:8080/mongo/frauds/stream](http://localhost:8080/mongo/frauds/stream). The controller supporting this request is shown below. It works with HTML 5 Server-Sent events technology:
 
-~~~ ktolin
+~~~ kotlin
 @RestController
 class KafkaDemoController {
     @Autowired
