@@ -1,5 +1,5 @@
 ---
-title:  "Simple Hazelcast configuration in Spring Boot 2 appliation. "
+title:  "Simple Hazelcast configuration in Spring Boot 2 application. "
 excerpt: "How to configure Hazelcast in Spring Boot 2. Simple use of Hazelcast in small distributed system."
 header:
   overlay_image: /assets/images/post_teaser.jpeg
