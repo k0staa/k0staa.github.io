@@ -1,0 +1,187 @@
+---
+title:  "API doucumentation with Spock and Restassured in Spring Boot 2"
+excerpt: "How to properly configure restassured with Spock in Spring Boot application"
+header:
+  overlay_image: /assets/images/post_teaser.jpeg
+  overlay_filter: 0.5 # same as adding an opacity of 0.5 to a black background
+  caption: "Photo credit: [Markus Spiske](http://freeforcommercialuse.net)"
+date:   2018-06-10 12:35:00 +0200
+tags: spring-boot java spock rest restassured
+---
+I have to start this post from the fact that I love Spock library and for some time I write tests only with use of it. I recently had the task to do API documentation and decided to do it with the help of the [REST Assured library](http://rest-assured.io/). There are a lot of guides and documentation on how to run REST Assured tests in conjunction with JUnit, but few (even less good) regarding the connection with Spock. Unfortunately for some reason I encountered a lot of problems when solving these task. In the end I managed to do it and that's why I writing this text.
+Gathering all this I would like to describe how to use Spock and REST Assured to generate documentation of REST API and attach it to the project.
+
+This is root project `build.gradle` file:
+~~~
+plugins {
+	id 'org.springframework.boot' version '2.2.2.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+	id 'org.asciidoctor.convert' version '1.6.1'
+	id 'groovy'
+}
+
+group = 'pl.codeaddict'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+	snippetsDir = "$buildDir/generated-snippets"
+	spockVersion = '1.3-groovy-2.5'
+	springRestDocsVersion = '2.0.4.RELEASE'
+	lombokVersion = '1.18.10'
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	compileOnly "org.projectlombok:lombok:$lombokVersion"
+
+	testImplementation "org.spockframework:spock-core:$spockVersion"
+	testImplementation "org.spockframework:spock-spring:$spockVersion"
+	testImplementation('org.springframework.boot:spring-boot-starter-test') {
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+	}
+	asciidoctor "org.springframework.restdocs:spring-restdocs-asciidoctor:$springRestDocsVersion"
+	testImplementation("org.springframework.restdocs:spring-restdocs-restassured:$springRestDocsVersion") {
+		exclude group: 'com.sun.xml.bind', module: 'jaxb-osgi'
+	}
+
+	annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+}
+
+test {
+	outputs.dir snippetsDir
+}
+
+task copyAsciidocTemplate(type: Copy) {
+	dependsOn test
+	from "src/docs/asciidoc"
+	into snippetsDir
+}
+
+asciidoctor {
+	dependsOn copyAsciidocTemplate
+	sourceDir snippetsDir
+	doLast {
+		copy {
+			from "$buildDir/asciidoc/html5"
+			into "$buildDir/resources/main/public/docs"
+			include "**/*.html"
+		}
+	}
+}
+
+bootRun.dependsOn(asciidoctor) 
+~~~
+As you can see in the file above there are a few things to do in order to add Spock and Rest assured. In addition to the obvious, i.e. adding libraries, I configured the path where parts of the API documentation will be generated:
+~~~
+snippetsDir = "$buildDir/generated-snippets"
+~~~
+I also created a task (`copyAsciidocTemplate`) that will copy the template document from the `src/docs/asciidoc` directory to the same directory where the fragments of API documentation will be generated. Some tutorials show the way where the generated parts are thrown into the `src` directory but I do not like such littering. 
+
+The configuration of the ascidoc -> html converter plugin (`org.asciidoctor.convert`) should be placed in the `asciidoctor` task. I also added there a fragment that copies the generated files to the `resoources` directory, which causes them to be added to the application jar. The last line connects the task `ascidoctor` with the `bootRun` task, so it's build documentation when `bootRun` task is run. 
+
+I have also added a groovy plugin. Remember that after adding it, the Java plugin will also be added automatically.
+
+An important part of the application is the documentation template `/src/docs/asciidocs/api.adoc`:
+~~~
+= Blog demo API
+
+== Login
+
+operation::login[snippets="curl-request,response-headers"]
+
+== Add Post
+
+operation::add_post[snippets="curl-request,request-headers,request-body,request-fields,response-body,response-fields"]
+
+== Modify Post
+
+operation::modify_post[snippets="curl-request,path-parameters,request-headers,request-body,request-fields"]
+
+== Get Post
+
+operation::get_post[snippets="curl-request,path-parameters,request-headers,response-body,response-fields"]
+~~~
+It is a file that collects all generated fragments into a whole. For example, `operation::get_post` defines the parts of the documentation for the operation `get_post` (the name defined in the `BlogApiDocumentationSpec.groovy` tests, line 137). Please note that `curl-request,path-parameters,request-headers,response-body,response-fields` fragments must be generated by our test code (but more on this in a moment).
+
+I will not paste the entire test class, only the method testing the `get_post` operation and generating the fragments used in the template described above:
+~~~java
+    void "get post details"() {
+        given:
+        final request =
+                given(this.requestSpec)
+                        .port(serverPort)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON.toString())
+                        .header("Authorization", "Bearer TOKEN")
+                        .filter(
+                                document(
+                                        "get_post",
+                                        pathParameters(
+                                                parameterWithName("id")
+                                                        .description("Blog post unique identification number")),
+                                        responseFields(
+                                                fieldWithPath("id")
+                                                        .description("Blog post identification number"),
+                                                fieldWithPath("text")
+                                                        .description("Blog post text"),
+                                        ),
+                                        requestHeaders(
+                                                headerWithName("Authorization").description(
+                                                        "Token for user authentication"))
+                                ))
+
+        when:
+        final response = request.get('/api/post/{id}', [id: "123-4234"])
+
+        then:
+        response.statusCode() == HttpStatus.OK.value()
+    }
+~~~
+I invite you to my [Github account](https://github.com/k0staa/Code-Addict-Repos/tree/master/spockapidocks) for the whole class. In the `given` section we define what our request should look like and what response we expect. We set the `Accept` and` Content-type` request headers to the value `MediaType.APPLICATION_JSON_VALUE` and custom `Authorization` header to value `Bearer TOKEN`. Then in the `filter` method we describe how the request and response should look like and what specific parameters mean (`description` methods). All elements defined in `filter` will be checked during tests. In the `when` section we make our request with the `id` path parameter equal to "123-4234". In the `then` section we perform a simple check whether the response code is 200.
+
+I added a simple controller in the application:
+
+~~~java
+package pl.codeaddict.spockapidocs;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api")
+public class BlogApiController {
+
+    @PostMapping("/login")
+    public ResponseEntity<Void> login(LoginRequest loginRequest) {
+        return ResponseEntity.ok().header("Set-Auth-Token", "TOKEN").build();
+    }
+
+    @PostMapping("/post")
+    public ResponseEntity<AddPostResponse> addPost(AddPostRequest addPostRequest) {
+        return ResponseEntity.ok().body(new AddPostResponse("111-333"));
+    }
+
+    @PutMapping("/post/{id}")
+    public ResponseEntity<Void> modifyPost(@PathVariable String id, ModifyPostRequest modifyPostRequest) {
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/post/{id}")
+    public ResponseEntity<GetPostDetailsResponse> getPostDetails(@PathVariable String id) {
+        return ResponseEntity.ok().body(new GetPostDetailsResponse("111-333","Blog post text"));
+    }
+
+}
+~~~
+I will not describe it more broadly, but if you want to expand your knowledge, I encourage you to read the [Spring tutorials](https://spring.io/guides/gs/rest-service/) and documentation about RESTfull web services.
+
+You can now start the applications by running `./gradlew bootRun` command in project directory. Enter `http://localhost:8080/docs/api.html` into your browser and enjoy beautiful documentation.
+
+This is it! You can find all the source code in my repository [GitHub account](https://github.com/k0staa/Code-Addict-Repos/tree/master/spockapidocks). 
+Have fun and thanks for reading!
