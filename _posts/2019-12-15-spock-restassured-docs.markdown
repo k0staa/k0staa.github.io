@@ -1,12 +1,12 @@
 ---
-title:  "API doucumentation with Spock and Restassured in Spring Boot 2"
-excerpt: "How to properly configure restassured with Spock in Spring Boot application"
+title:  "API doucumentation with Spock and REST Assured in Spring Boot 2"
+excerpt: "How to properly configure REST Assured with Spock in Spring Boot application"
 header:
   overlay_image: /assets/images/post_teaser.jpeg
   overlay_filter: 0.5 # same as adding an opacity of 0.5 to a black background
   caption: "Photo credit: [Markus Spiske](http://freeforcommercialuse.net)"
-date:   2018-06-10 12:35:00 +0200
-tags: spring-boot java spock rest restassured
+date:   2019-12-25 09:54:00 +0200
+tags: spring-boot java spock rest assured
 ---
 I have to start this post from the fact that I love Spock library and for some time I write tests only with use of it. I recently had the task to do API documentation and decided to do it with the help of the [REST Assured library](http://rest-assured.io/). There are a lot of guides and documentation on how to run REST Assured tests in conjunction with JUnit, but few (even less good) regarding the connection with Spock. Unfortunately for some reason I encountered a lot of problems when solving these task. In the end I managed to do it and that's why I writing this text.
 Gathering all this I would like to describe how to use Spock and REST Assured to generate documentation of REST API and attach it to the project.
@@ -81,11 +81,11 @@ As you can see in the file above there are a few things to do in order to add Sp
 ~~~
 snippetsDir = "$buildDir/generated-snippets"
 ~~~
-I also created a task (`copyAsciidocTemplate`) that will copy the template document from the `src/docs/asciidoc` directory to the same directory where the fragments of API documentation will be generated. Some tutorials show the way where the generated parts are thrown into the `src` directory but I do not like such littering. 
+I also created a task (`copyAsciidocTemplate`) that will copy the template document from the `src/docs/asciidoc` directory to the same directory where the fragments of API documentation will be generated. Some tutorials show that the generated parts are thrown into the src directory. but for me it is a bad approach.. 
 
-The configuration of the ascidoc -> html converter plugin (`org.asciidoctor.convert`) should be placed in the `asciidoctor` task. I also added there a fragment that copies the generated files to the `resoources` directory, which causes them to be added to the application jar. The last line connects the task `ascidoctor` with the `bootRun` task, so it's build documentation when `bootRun` task is run. 
+The configuration of the ascidoc -> html converter plugin (`org.asciidoctor.convert`) should be placed in the `asciidoctor` task. I also added there a fragment that copies the generated files to the `resources` directory, which causes them to be added to the application jar. The last line connects the task `ascidoctor` with the `bootRun` task, so it's build documentation when `bootRun` task is run. 
 
-I have also added a groovy plugin. Remember that after adding it, the Java plugin will also be added automatically.
+I have also added a groovy plugin. Remember that after adding it, the Java plugin will also be added automatically so you don't have to add it anymore.
 
 An important part of the application is the documentation template `/src/docs/asciidocs/api.adoc`:
 ~~~
@@ -143,7 +143,7 @@ I will not paste the entire test class, only the method testing the `get_post` o
         response.statusCode() == HttpStatus.OK.value()
     }
 ~~~
-I invite you to my [Github account](https://github.com/k0staa/Code-Addict-Repos/tree/master/spockapidocks) for the whole class. In the `given` section we define what our request should look like and what response we expect. We set the `Accept` and` Content-type` request headers to the value `MediaType.APPLICATION_JSON_VALUE` and custom `Authorization` header to value `Bearer TOKEN`. Then in the `filter` method we describe how the request and response should look like and what specific parameters mean (`description` methods). All elements defined in `filter` will be checked during tests. In the `when` section we make our request with the `id` path parameter equal to "123-4234". In the `then` section we perform a simple check whether the response code is 200.
+In `given` section we define what our request should look like and what response we expect. We set the `Accept` and` Content-type` request headers to the value `MediaType.APPLICATION_JSON_VALUE` and custom `Authorization` header to value `Bearer TOKEN`. Then in the `filter` method we describe how the request and response should look like and what specific parameters mean (`description` methods). At this point, we also define fragments of documentation that we list in the template (e.g. `request-headers`). All elements defined in `filter` will be checked during tests. In `when` section we running our request with the `id` path parameter equal to "123-4234". In `then` section we perform a simple check whether the response code is 200. I invite you to my [Github account](https://github.com/k0staa/Code-Addict-Repos/tree/master/spockapidocks) for the whole class. 
 
 I added a simple controller in the application:
 
@@ -179,9 +179,9 @@ public class BlogApiController {
 
 }
 ~~~
-I will not describe it more broadly, but if you want to expand your knowledge, I encourage you to read the [Spring tutorials](https://spring.io/guides/gs/rest-service/) and documentation about RESTfull web services.
+I will not describe it in more detail, but if you want to expand your knowledge, I encourage you to read the [Spring tutorials](https://spring.io/guides/gs/rest-service/) and documentation about RESTfull web services.
 
-You can now start the applications by running `./gradlew bootRun` command in project directory. Enter `http://localhost:8080/docs/api.html` into your browser and enjoy beautiful documentation.
+You can now start the applications by running `./gradlew bootRun` command in project directory. Open `http://localhost:8080/docs/api.html` address in your browser and enjoy beautiful documentation.
 
 This is it! You can find all the source code in my repository [GitHub account](https://github.com/k0staa/Code-Addict-Repos/tree/master/spockapidocks). 
 Have fun and thanks for reading!
