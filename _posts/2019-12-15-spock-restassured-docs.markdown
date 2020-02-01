@@ -1,5 +1,5 @@
 ---
-title:  "API doucumentation with Spock and REST Assured in Spring Boot 2"
+title:  "API documentation with Spock and REST Assured in Spring Boot 2"
 excerpt: "How to properly configure REST Assured with Spock in Spring Boot application"
 header:
   overlay_image: /assets/images/post_teaser.jpeg
