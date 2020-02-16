@@ -8,10 +8,10 @@ header:
 date:   2020-02-09 14:52:00 +0200
 tags: spring-boot kotlin siddhi 
 ---
-Analyzing a data stream to look up patterns is a popular activity today. [Siddhi](https://siddhi.io/) is a very interesting and one of the easiest tools. 
+Analyzing a data stream to look up patterns is a popular thing this days. [Siddhi](https://siddhi.io/) is a very interesting and one of the easiest tools. 
 The Siddhi package consists of an engine as well as a graphic editor. The engine can be used both as a embedded library and as a separately launched docker container. In Spring applications I recommend the latter option because I don't see a sensible way to use the library (unless we run the applications as `CommandLineRunner`)
 To start with, let's create a simple application that will receive a POST request with a message and send it to the RabbitMQ queue and will receive information about alarms from another queue.
-For variety I use Kotlin everywhere, but if you use Intellij IDEA it will easily convert it to Java code.
+I use Kotlin everywhere to have some extra fun.
 
 This is root project `build.gradle` file:
 ~~~
@@ -101,7 +101,7 @@ Secondly, I'm using `spring-boot-starter-webflux` but to tell the truth it's not
 
 And the last important thing, I set the Kotlin code compilation to byte code compatible with Java 8 using `jvmTarget = "1.8"`.
 
-In the application I added a simple configuration of the RabbitMQ queue:
+In the application I added a simple configuration of the RabbitMQ messages queue:
 
 ~~~java
 import org.springframework.amqp.core.Queue
