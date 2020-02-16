@@ -95,7 +95,7 @@ tasks.register("appDocker" ,se.transmode.gradle.plugins.docker.DockerTask::class
 ~~~
 Some things definitely need to be explained. 
 
-First of all, I'm using the `se.transmode.gradle:gradle-docker:1.2` plugin that allows me to build a docker image from the application. That's why I created few custom code blocks: `configure`, `copyJar` task, `appDocker` task.  
+First of all, I'm using the `se.transmode.gradle:gradle-docker:1.2` plugin that allows me to build a docker image for the application. That's why I created few custom code blocks: `configure`, `copyJar` task, `appDocker` task.  
 
 Secondly, I'm using `spring-boot-starter-webflux` but to tell the truth it's not needed in this example and you can easily replace it with `spring-boot-starter-web`.
 
@@ -104,6 +104,11 @@ And the last important thing, I set the Kotlin code compilation to byte code com
 In the application I added a simple configuration of the RabbitMQ queue:
 
 ~~~java
+import org.springframework.amqp.core.Queue
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+
 @Configuration
 class RabbitMQConfig {
     @Value("\${siddhidemo.rabbitmq.messageQueue}")
@@ -118,36 +123,47 @@ class RabbitMQConfig {
 The class is very simple. As you can see, the queue name is parameterized in `application.yml`.
 Now a simple service whose task is to send messages to a configured queue:
 ~~~java
-@Service
-class RabbitMQSenderService {
-    @Autowired
-    private val rabbitTemplate: RabbitTemplate? = null
+import org.springframework.amqp.core.Queue
+import org.springframework.amqp.rabbit.core.RabbitTemplate
+import org.springframework.stereotype.Service
 
-    @Autowired
-    private val queue: Queue? = null
+
+@Service
+class RabbitMQSenderService(
+        private val rabbitTemplate: RabbitTemplate,
+        private val queue: Queue) {
 
     fun send(message: String) {
-        rabbitTemplate!!.convertAndSend(queue!!.name, message);
+        rabbitTemplate.convertAndSend(queue.name, message);
         println(" [x] Sent '$message'");
     }
 }
 ~~~
 Let's move to the first controller whose task is to capture a POST request with a message and send to RabbitMQ through the service:
 ~~~java
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
+
 @RestController
-class MessageQueueController {
-    @Autowired
-    private val rabbitMQSender: RabbitMQSenderService? = null
+class MessageQueueController(
+        private val rabbitMQSender: RabbitMQSenderService) {
 
     @PostMapping(value = ["/messages"])
     fun addMessageToQueue(@RequestBody msg: String): String {
-        rabbitMQSender!!.send(msg);
+        rabbitMQSender.send(msg);
         return "Message sent to the RabbitMQ Successfully";
     }
 }
 ~~~
 And now the last part of the application, i.e. the service listening for the alarm queue and writing incoming messages to the console:
 ~~~java
+import org.springframework.amqp.rabbit.annotation.Exchange
+import org.springframework.amqp.rabbit.annotation.Queue
+import org.springframework.amqp.rabbit.annotation.QueueBinding
+import org.springframework.amqp.rabbit.annotation.RabbitListener
+import org.springframework.stereotype.Component
+
 @Component
 class RabbitMQAlarmReceiver {
 
@@ -233,7 +249,7 @@ curl --location --request POST 'localhost:8080/messages' \
 --header 'Content-Type: text/plain' \
 --data-raw '{"msg": "just message"}'
 ~~~
-Let's send any message other than `alert`(like the one above) and after some while send `alert` message more than three times duirng 30 second time window. When you look at appliacation logs `docker logs siddhi-demo-app`, you should see that alert receiver print message:
+Let's send any message other than `alert`(like the one above) and after some while send `alert` message more than three times duirng 30 second time window. When you look at application logs `docker logs siddhi-demo-app`, you should see that alert receiver print message:
 ~~~
  [x] Received '{"event":{"msg":"alert","msg_count":4}}'
 ~~~
