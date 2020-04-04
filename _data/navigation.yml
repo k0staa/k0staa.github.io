@@ -2,6 +2,8 @@
 main:
   - title: "About"
     url: /about/
+  - title: "All tags"
+    url: /tags
     # - title: "Sample Posts"
     # url: /year-archive/
   # - title: "Sample Collections"

@@ -45,7 +45,7 @@ staticman:
       options:
         format           : "iso8601" # "iso8601" (default), "timestamp-seconds", "timestamp-milliseconds"
 atom_feed:
-  path                   : # blank (default) uses feed.xml
+  path                   : #"_site/feed.xml"
 
 # SEO Related
 google_site_verification : "SE64OGz2ULNry6QXWhlJScUfNUXwifw-VjYwdRPyCdU"
@@ -64,9 +64,12 @@ og_image                 : # Open Graph/Twitter default site image
 # For specifying social profiles
 # - https://developers.google.com/structured-data/customize/social-profiles
 social:
-  type                   : # Person or Organization (defaults to Person)
+  type                   : "Michał Kostewicz"
   name                   : # If the user or organization name differs from the site's name
-  links: # An array of links to social media profiles
+  links: 
+    - "https://twitter.com/MKostewicz"
+    - "https://www.facebook.com/mK0sta"
+    - "https://www.linkedin.com/in/micha%C5%82-kostewicz-49565213a/"
 
 # Analytics
 analytics:
@@ -107,7 +110,7 @@ author:
   xing             :
   youtube          : # "https://youtube.com/c/MichaelRoseDesign"
 minimal_mistakes_skin: "dark"
-remote_theme: mmistakes/minimal-mistakes
+theme: minimal-mistakes-jekyll
 
 
 # Reading Files
