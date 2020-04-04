@@ -6,6 +6,23 @@
 # `jekyll serve`. If you change this file, please restart the server process.
 
 # Site Settings
+minimal_mistakes_skin: dark
+repository: k0staa/k0staa.github.io
+remote_theme: mmistakes/minimal-mistakes
+# Plugins (previously gems:)
+plugins:
+  - jekyll-paginate
+  - jekyll-sitemap
+  - jekyll-gist
+  - jekyll-feed
+  - jemoji
+  - jekyll-include-cache
+search: true
+
+
+
+
+
 locale                   : "pl"
 title                    : "code-addict"
 title_separator          : "-"
@@ -13,21 +30,9 @@ name                     : "Michał Kostewicz"
 description              : "Blog about software development. It's my hobby to write lines of code and deepen new technologies and I'd like to share my passion with you! I will write about Java, Python, C#, C++,relational and not relational databases, machine learning, data mining... so about everything really."
 url                      : "http://code-addict.pl"
 baseurl                  : # the subpath of your site, e.g. "/blog"
-repository               : "k0staa/k0staa.github.io"
 teaser                   : "/assets/images/default_post_teaser.jpg"
 # breadcrumbs            : false # true, false (default)
 words_per_minute         : 200
-comments:
-  provider               : # false (default), "disqus", "discourse", "facebook", "google-plus", "staticman", "custom"
-  disqus:
-    shortname            : # https://help.disqus.com/customer/portal/articles/466208-what-s-a-shortname-
-  discourse:
-    server               : # https://meta.discourse.org/t/embedding-discourse-comments-via-javascript/31963 , e.g.: meta.discourse.org
-  facebook:
-    # https://developers.facebook.com/docs/plugins/comments
-    appid                :
-    num_posts            : # 5 (default)
-    colorscheme          : # "light" (default), "dark"
 staticman:
   allowedFields          : ['name', 'email', 'url', 'message']
   branch                 : "master"
@@ -47,11 +52,14 @@ staticman:
 atom_feed:
   path                   : #"_site/feed.xml"
 
+
 # SEO Related
 google_site_verification : "SE64OGz2ULNry6QXWhlJScUfNUXwifw-VjYwdRPyCdU"
 bing_site_verification   :
 alexa_site_verification  :
 yandex_site_verification :
+
+
 
 # Social Sharing
 twitter:
@@ -71,13 +79,17 @@ social:
     - "https://www.facebook.com/mK0sta"
     - "https://www.linkedin.com/in/micha%C5%82-kostewicz-49565213a/"
 
+
 # Analytics
 analytics:
   provider               : "google" # false (default), "google", "google-universal", "custom"
   google:
     tracking_id          : "UA-102651793-1"
 
+
 google_ad_client        : true
+
+
 # Site Author
 author:
   name             : "Michał Kostewicz"
@@ -109,10 +121,8 @@ author:
   weibo            :
   xing             :
   youtube          : # "https://youtube.com/c/MichaelRoseDesign"
-minimal_mistakes_skin: "dark"
-#theme: minimal-mistakes-jekyll
-remote-theme: "mmistakes/minimal-mistakes"
 
+  
 # Reading Files
 include:
   - .htaccess
@@ -183,54 +193,14 @@ paginate_path: /page:num/
 timezone: "Europe/Warsaw"  # http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
 
-# Plugins (previously gems:)
-plugins_dir:
-  - jekyll-paginate
-  - jekyll-sitemap
-  - jekyll-gist
-  - jekyll-feed
-  - jemoji
-  - jekyll-include-cache
-
-# mimic GitHub Pages with --safe
-whitelist:
-  - jekyll-paginate
-  - jekyll-sitemap
-  - jekyll-gist
-  - jekyll-feed
-  - jemoji
-  - jekyll-include-cache
-
-
-# Archives
-#  Type
-#  - GitHub Pages compatible archive pages built with Liquid ~> type: liquid (default)
-#  - Jekyll Archives plugin archive pages ~> type: jekyll-archives
-#  Path (examples)
-#  - Archive page should exist at path when using Liquid method or you can
-#    expect broken links (especially with breadcrumbs enabled)
-#  - <base_path>/tags/my-awesome-tag/index.html ~> path: /tags/
-#  - <base_path/categories/my-awesome-category/index.html ~> path: /categories/
-#  - <base_path/my-awesome-category/index.html ~> path: /
 category_archive:
   type: liquid
   path: /categories/
 tag_archive:
   type: liquid
   path: /tags/
-# https://github.com/jekyll/jekyll-archives
-# jekyll-archives:
-#   enabled:
-#     - categories
-#     - tags
-#   layouts:
-#     category: archive-taxonomy
-#     tag: archive-taxonomy
-#   permalinks:
-#     category: /categories/:name/
-#     tag: /tags/:name/
 
-
+  
 # HTML Compression
 # - http://jch.penibelst.de/
 compress_html:
