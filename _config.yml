@@ -106,7 +106,7 @@ author:
   weibo            :
   xing             :
   youtube          : # "https://youtube.com/c/MichaelRoseDesign"
-minimal_mistakes_skin: default
+minimal_mistakes_skin: "dark"
 remote_theme: mmistakes/minimal-mistakes
 
 
