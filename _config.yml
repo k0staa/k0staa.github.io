@@ -74,7 +74,7 @@ analytics:
   google:
     tracking_id          : "UA-102651793-1"
 
-
+google_ad_client        : true
 # Site Author
 author:
   name             : "Michał Kostewicz"
@@ -106,6 +106,8 @@ author:
   weibo            :
   xing             :
   youtube          : # "https://youtube.com/c/MichaelRoseDesign"
+minimal_mistakes_skin: default
+remote_theme: mmistakes/minimal-mistakes
 
 
 # Reading Files
@@ -185,6 +187,7 @@ plugins_dir:
   - jekyll-gist
   - jekyll-feed
   - jemoji
+  - jekyll-include-cache
 
 # mimic GitHub Pages with --safe
 whitelist:
@@ -193,6 +196,7 @@ whitelist:
   - jekyll-gist
   - jekyll-feed
   - jemoji
+  - jekyll-include-cache
 
 
 # Archives
