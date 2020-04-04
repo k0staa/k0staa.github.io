@@ -110,8 +110,8 @@ author:
   xing             :
   youtube          : # "https://youtube.com/c/MichaelRoseDesign"
 minimal_mistakes_skin: "dark"
-theme: minimal-mistakes-jekyll
-
+#theme: minimal-mistakes-jekyll
+remote-theme: "mmistakes/minimal-mistakes"
 
 # Reading Files
 include:
