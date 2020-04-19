@@ -188,12 +188,12 @@ class ApiResource(private val service: ApiResourceService) {
 }
 ~~~
 
-Time for servce in Quarkus project:
+Time for service in Quarkus project:
 
 ~~~java
 import io.agroal.api.AgroalDataSource
+import java.sql.Connection
 import java.sql.ResultSet
-import java.sql.Statement
 import java.util.*
 import javax.inject.Singleton
 
@@ -202,38 +202,51 @@ import javax.inject.Singleton
 open class ApiResourceService(private val dataSource: AgroalDataSource) {
 
     fun readDataObject(data: String): Optional<DataObject> {
-        val sql = "SELECT * FROM DATA_OBJECTS WHERE DATA = '$data'"
-        val statement = getConnectionStatement()
-        val results: ResultSet = statement.executeQuery(sql)
-        var dataResult: DataObject? = null
-        while (results.next()) {
-            val resultData: String = results.getString("DATA")
-            dataResult = DataObject(resultData)
-            break
+        synchronized(this) {
+            val sql = "SELECT * FROM DATA_OBJECTS WHERE DATA = '$data'"
+            val connection = getConnection()
+            val statement = connection.createStatement()
+            val results: ResultSet = statement.executeQuery(sql)
+            var dataResult: DataObject? = null
+            while (results.next()) {
+                val resultData: String = results.getString("DATA")
+                dataResult = DataObject(resultData)
+                break
+            }
+            statement.close()
+            connection.close()
+            return Optional.ofNullable(dataResult)
         }
-
-        return Optional.ofNullable(dataResult)
     }
 
     fun storeDataObject(data: DataObject): Int {
-        val statement = getConnectionStatement()
-        statement.execute("DROP TABLE DATA_OBJECTS IF EXISTS")
-        statement.execute("CREATE TABLE DATA_OBJECTS(" +
-                "ID INT, DATA VARCHAR(100))")
+        synchronized(this) {
+            val connection = getConnection()
+            val statement = connection.createStatement()
+            statement.execute("DROP TABLE DATA_OBJECTS IF EXISTS")
+            statement.execute("CREATE TABLE DATA_OBJECTS(" +
+                    "ID INT, DATA VARCHAR(100))")
 
-        return statement.executeUpdate("INSERT INTO DATA_OBJECTS(DATA) VALUES ('${data.data}')")
+            val result: Int =
+                    statement.executeUpdate("INSERT INTO DATA_OBJECTS(DATA) VALUES ('${data.data}')")
+            statement.close()
+            connection.close()
+            return result
+        }
     }
 
-    private fun getConnectionStatement(): Statement {
-        return dataSource.connection.createStatement()
+    private fun getConnection(): Connection {
+        println("JDBC Metrics:" + dataSource.metrics)
+        return dataSource.connection
     }
-
+}
 
 ~~~
 **One important thing worth mention**. Quarkus gives us hot reload when we use `./gradlew quarkusDev` without any additional requirements.It's cool feature. Unfortunately, when we use Kotlin we can encounter many problems with the initialization/injection of beans. For example, the annotation `@ApplicationScope` which can be found in many Quarkus examples, makes the `dataSource` object not initializing. When we use this annotation and we change something in the `ApiResourceService` class and hot reload occurs `dataSource` object will be null. I used the `@Singleton` annotation here, but its limitations should be taken into account (check [StackOverflow question](https://stackoverflow.com/questions/26832051/singleton-vs-applicationscope/27848417)) or do not use the Kotlin with Quarkus :disappointed: (Kotlin is still marked as beta on Quarku initializr site).
-
+Another problem I found is that we can't use `@Synchronized` annotation because Quarkus won't start in dev mode :disappointed:
 Let's see same service but for Spring Boot project:
 ~~~java
+
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import java.sql.ResultSet
@@ -244,18 +257,22 @@ import java.util.*
 open class ApiResourceService(private val jdbcTemplate: JdbcTemplate) {
 
     fun readDataObject(data: String): Optional<DataObject> {
-        val sql = "SELECT * FROM DATA_OBJECTS WHERE DATA = ?"
+        synchronized(this) {
+            val sql = "SELECT * FROM DATA_OBJECTS WHERE DATA = ?"
 
-        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, arrayOf<Any>(data)) { rs: ResultSet, _: Int ->
-            DataObject(rs.getString("DATA"))
-        })
+            return Optional.ofNullable(jdbcTemplate.queryForObject(sql, arrayOf<Any>(data)) { rs: ResultSet, _: Int ->
+                DataObject(rs.getString("DATA"))
+            })
+        }
     }
 
     fun storeDataObject(dataObject: DataObject): Int {
-        jdbcTemplate.execute("DROP TABLE DATA_OBJECTS IF EXISTS")
-        jdbcTemplate.execute("CREATE TABLE DATA_OBJECTS(" +
-                "ID INT, DATA VARCHAR(100))")
-        return jdbcTemplate.update("INSERT INTO DATA_OBJECTS(DATA) VALUES (?)", dataObject.data)
+        synchronized(this) {
+            jdbcTemplate.execute("DROP TABLE DATA_OBJECTS IF EXISTS")
+            jdbcTemplate.execute("CREATE TABLE DATA_OBJECTS(" +
+                    "ID INT, DATA VARCHAR(100))")
+            return jdbcTemplate.update("INSERT INTO DATA_OBJECTS(DATA) VALUES (?)", dataObject.data)
+        }
     }
 }
 ~~~
@@ -270,19 +287,25 @@ quarkus.datasource.db-kind=h2
 quarkus.datasource.username=sa
 
 quarkus.datasource.jdbc.url=jdbc:h2:tcp://localhost:1521/test
-quarkus.datasource.jdbc.min-size=4
-quarkus.datasource.jdbc.max-size=16
+quarkus.datasource.jdbc.initial-size=10
+quarkus.datasource.jdbc.min-size=10
+quarkus.datasource.jdbc.max-size=100
+quarkus.datasource.jdbc.enable-metrics=true
+quarkus.datasource.metrics.enabled=true
 ~~~
+ The only visible difference visible between projects is the  parameter `quarkus.datasource.jdbc.initial-size`. The connection pool in Spring Boot is created in the amount specified by the `spring.datasource.hikari.minimumIdle` parameter so here I had to set it to have Quarkus application have pool initialized same as Spring Boot. I also added properties which turn on metrics for datasource so I can check if connections are created and closed porperly.
+
 It's worth to mention that Quarkus use one property file for every profiles (configuration entries for each profile are marked with prefix), so I thinking that it can be quite messy sometimes. In the first versions it was not possible to use the YAML file but now it is possible after adding the appropriate extension.
 Spring Boot property file:
 ~~~
 spring.datasource.url=jdbc:h2:tcp://localhost:1521/test
 spring.datasource.username=sa
 spring.datasource.password=
-spring.datasource.hikari.minimumIdle=4
-spring.datasource.hikari.maximumPoolSize=16
-
+spring.datasource.hikari.minimumIdle=10
+spring.datasource.hikari.maximumPoolSize=100
+logging.level.com.zaxxer.hikari=TRACE
 ~~~
+I've turned on logging for HikariCP to see status of connection pool.
 
 ### Running the applications
 We can proceed to running the application. Let's start by running the H2 database in a separate docker container. We can do it using the prepared `docker-compose.yml` configuration which can be found in the root project directory. Just use below command:
@@ -303,11 +326,146 @@ With Spring Boot project we have two options. You can simply run `./gradlew boot
 
 If you run the applications, you will immediately see the difference in the start time of each version. But it's time to run deep dive into preformance tests :smirk:.
 ### Testing performance
-
-1. To start with, the basic thing. Application launch time.
-- Test conditions: I run applications one at a time in docker containers with the H2 container already running. Number of attempts: 
+To make testing easier, I added an 'Dockerfile' with the [wrk](https://github.com/wg/wrk/) tool that I will be using to test performance. If you want to run tests by yourself first you should build image using `test-scripts/perfBuildDocker.sh` and then you can run any test scripts (scripts are prefixed with `perf`).
+I set the connection pool size for both applications to min 10, max 100.
+#### Application launch time.
+- Test conditions: I run applications one at a time in docker containers with the H2 container already running. The values are taken from the application log, both give the start time. 
+- Number of attempts: 11
 - Results:
+~~~
+app-quarkus-jvm,3.665,1.737,1.716,1.715,1.667,1.877,1.811,1.676,1.895,1.793,1.921
+app-spring-boot,3.807,2.724,2.856,2.891,2.819,2.760,2.732,2.744,2.758,2.818,2.908
+app-quarkus-native,0.892,0.013,0.016,0.014,0.014,0.012,0.012,0.014,0.014,0.012,0.013
+~~~
 - Plot: 
+- Additional information: the first launch of each container is noticeably slower but I have kept this data in results.
+
+#### Endpoints performance (quick test)
+
+- Test conditions: 2 simultaneous threads with 10 connections run over period of 10 seconds.This can also be described as ten users that request our home page repeatedly for ten seconds.
+1. Quarkus JVM (GET '/api/{data}')
+- Script used to run tests: `perfGetObjQuarkusJVM.sh`
+- Results:
+~~~
+Running 10s test @ http://quarkus-vs-spring-app-quarkus-jvm:8080/api/SlimShady
+  2 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    15.57ms   33.22ms 343.49ms   97.10%
+    Req/Sec   526.93    251.38     1.50k    65.46%
+  10219 requests in 10.02s, 0.89MB read
+Requests/sec:   1020.09
+Transfer/sec:     90.65KB
+~~~
+- Plot:
+2. Quarkus JVM (POST '/api/') - endpoint that writes data to database. 
+- Script used to run tests: `perfPostObjQuarkusNative.sh`
+- Results:
+~~~
+Running 10s test @ http://quarkus-vs-spring-app-quarkus-jvm:8080/api/
+  2 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    22.45ms   40.84ms 387.82ms   96.29%
+    Req/Sec   332.73    112.97   580.00     67.53%
+  6443 requests in 10.01s, 446.73KB read
+Requests/sec:    643.53
+Transfer/sec:     44.62KB
+~~~
+- Plot:
+3. Quarkus Native (GET '/api/{data}')
+- Script used to run tests: `perfGetObjQuarkusNative.sh`
+- Results:
+~~~
+Running 10s test @ http://quarkus-vs-spring-app-quarkus-native:8080/api/SlimShady
+  2 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     4.64ms    2.15ms  26.13ms   78.92%
+    Req/Sec     1.09k   103.47     1.36k    72.50%
+  21780 requests in 10.00s, 1.89MB read
+Requests/sec:   2177.64
+Transfer/sec:    193.52KB
+~~~
+- Plot:
+4. Quarkus Native (POST '/api/')
+- Script used to run tests: `perfPostObjQuarkusNative.sh`
+- Results:
+~~~
+Running 10s test @ http://quarkus-vs-spring-app-quarkus-native:8080/api/
+  2 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     9.02ms    2.99ms  45.99ms   74.27%
+    Req/Sec   560.27     67.75   696.00     66.00%
+  11160 requests in 10.01s, 773.79KB read
+Requests/sec:   1114.74
+Transfer/sec:     77.29KB
+~~~
+- Plot:
+
+5. Spring Boot (POST '/api/')
+- Script used to run tests: `perfPostObjSpring.sh`
+- Results:
+~~~
+Running 10s test @ http://quarkus-vs-spring-app-spring-jvm:8080/api/
+  2 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    14.41ms   46.06ms 429.64ms   96.80%
+    Req/Sec   847.83    303.67     1.80k    71.35%
+  16240 requests in 10.00s, 1.94MB read
+Requests/sec:   1623.40
+Transfer/sec:    198.48KB
+~~~
+- Plot:
+
+6. Spring Boot (GET '/api/{data}')
+- Script used to run tests: `perfGetObjSpring.sh`
+- Results:
+~~~
+Running 10s test @ http://quarkus-vs-spring-app-spring-jvm:8080/api/SlimShady
+  2 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    11.41ms   45.57ms 441.14ms   96.85%
+    Req/Sec     1.69k   649.85     2.70k    58.85%
+  32407 requests in 10.00s, 4.49MB read
+Requests/sec:   3239.68
+Transfer/sec:    459.34KB
+~~~
+- Plot:
+
+
+####  Spring endpoints performance after JVM warm up
+- Test conditions: 2 simultaneous threads with 10 connections run over period of 15 min.This can also be described as ten users that request our home page repeatedly for ten seconds.
+1
+1. Spring Boot (POST '/api/')
+- Script used to run tests: `perfPostObjSpringLong.sh`
+- Results:
+~~~
+Running 15m test @ http://quarkus-vs-spring-app-spring-jvm:8080/api/
+  2 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     3.77ms    5.83ms 438.59ms   99.22%
+    Req/Sec     1.40k   146.65     2.01k    73.86%
+  2500953 requests in 15.00m, 298.59MB read
+Requests/sec:   2778.57
+Transfer/sec:    339.70KB
+~~~
+- Plot:
+
+2. Spring Boot (GET '/api/{data}')
+- Script used to run tests: `perfGetObjSpringLong.sh`
+- Results:
+~~~
+Running 15m test @ http://quarkus-vs-spring-app-spring-jvm:8080/api/SlimShady
+  2 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     1.55ms    4.86ms 402.72ms   99.50%
+    Req/Sec     3.59k   361.49     4.72k    74.17%
+  6423216 requests in 15.00m, 0.87GB read
+Requests/sec:   7136.70
+Transfer/sec:      0.99MB
+~~~
+- Plot:
+
+
+
 
 
 This is it! You can find all the source code in my repository [GitHub account](https://github.com/k0staa/Code-Addict-Repos/tree/master/). 
