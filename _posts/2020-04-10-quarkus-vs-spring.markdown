@@ -328,7 +328,7 @@ If you run the applications, you will immediately see the difference in the star
 ### Testing performance
 To make testing easier, I added an 'Dockerfile' with the [wrk](https://github.com/wg/wrk/) tool that I will be using to test performance. If you want to run tests by yourself first you should build image using `test-scripts/perfBuildDocker.sh` and then you can run any test scripts (scripts are prefixed with `perf`).
 I set the connection pool size for both applications to min 10, max 100.
-#### Application launch time.
+#### Application launch time
 - Test conditions: I run applications one at a time in docker containers with the H2 container already running. The values are taken from the application log, both give the start time. 
 - Number of attempts: 11
 - Results:
@@ -337,8 +337,34 @@ app-quarkus-jvm,3.665,1.737,1.716,1.715,1.667,1.877,1.811,1.676,1.895,1.793,1.92
 app-spring-boot,3.807,2.724,2.856,2.891,2.819,2.760,2.732,2.744,2.758,2.818,2.908
 app-quarkus-native,0.892,0.013,0.016,0.014,0.014,0.012,0.012,0.014,0.014,0.012,0.013
 ~~~
-- Plot: 
-- Additional information: the first launch of each container is noticeably slower but I have kept this data in results.
+- Plot:
+startTimesPlot.png 
+
+The first launch of each container is noticeably slower but I have kept this data in results.
+
+#### Artifact size
+- Results:
+~~~
+app-quarkus-jvm,23388866
+app-spring-boot,26882397
+app-quarkus-native,47413896
+~~~
+- Plot:
+appSizesPlot.png 
+
+We need to remember that we don't need Java Runtime with Quarkus Native, so it can really save us a lot.
+
+#### Application memmory usage
+- Test conditions: I start all applications on docker and read `docker` stats. First value is memmory usage when application is at rest and second is maximal usage when receiving requests (I use `wrk -t2 -c10 -d1m  $url` command) 
+- Results:
+~~~
+app-quarkus-jvm,97.34,418.2
+app-spring-boot,287.3,601.5
+app-quarkus-native,6.488,282.5
+~~~
+- Plot:
+appRamPlot.png 
+
 
 #### Endpoints performance (quick test)
 
@@ -356,7 +382,7 @@ Running 10s test @ http://quarkus-vs-spring-app-quarkus-jvm:8080/api/SlimShady
 Requests/sec:   1020.09
 Transfer/sec:     90.65KB
 ~~~
-- Plot:
+
 2. Quarkus JVM (POST '/api/') - endpoint that writes data to database. 
 - Script used to run tests: `perfPostObjQuarkusNative.sh`
 - Results:
@@ -370,7 +396,7 @@ Running 10s test @ http://quarkus-vs-spring-app-quarkus-jvm:8080/api/
 Requests/sec:    643.53
 Transfer/sec:     44.62KB
 ~~~
-- Plot:
+
 3. Quarkus Native (GET '/api/{data}')
 - Script used to run tests: `perfGetObjQuarkusNative.sh`
 - Results:
@@ -384,7 +410,7 @@ Running 10s test @ http://quarkus-vs-spring-app-quarkus-native:8080/api/SlimShad
 Requests/sec:   2177.64
 Transfer/sec:    193.52KB
 ~~~
-- Plot:
+
 4. Quarkus Native (POST '/api/')
 - Script used to run tests: `perfPostObjQuarkusNative.sh`
 - Results:
@@ -398,7 +424,6 @@ Running 10s test @ http://quarkus-vs-spring-app-quarkus-native:8080/api/
 Requests/sec:   1114.74
 Transfer/sec:     77.29KB
 ~~~
-- Plot:
 
 5. Spring Boot (POST '/api/')
 - Script used to run tests: `perfPostObjSpring.sh`
@@ -413,7 +438,6 @@ Running 10s test @ http://quarkus-vs-spring-app-spring-jvm:8080/api/
 Requests/sec:   1623.40
 Transfer/sec:    198.48KB
 ~~~
-- Plot:
 
 6. Spring Boot (GET '/api/{data}')
 - Script used to run tests: `perfGetObjSpring.sh`
@@ -428,12 +452,10 @@ Running 10s test @ http://quarkus-vs-spring-app-spring-jvm:8080/api/SlimShady
 Requests/sec:   3239.68
 Transfer/sec:    459.34KB
 ~~~
-- Plot:
-
 
 ####  Spring endpoints performance after JVM warm up
 - Test conditions: 2 simultaneous threads with 10 connections run over period of 15 min.This can also be described as ten users that request our home page repeatedly for ten seconds.
-1
+
 1. Spring Boot (POST '/api/')
 - Script used to run tests: `perfPostObjSpringLong.sh`
 - Results:
@@ -447,7 +469,6 @@ Running 15m test @ http://quarkus-vs-spring-app-spring-jvm:8080/api/
 Requests/sec:   2778.57
 Transfer/sec:    339.70KB
 ~~~
-- Plot:
 
 2. Spring Boot (GET '/api/{data}')
 - Script used to run tests: `perfGetObjSpringLong.sh`
@@ -462,9 +483,10 @@ Running 15m test @ http://quarkus-vs-spring-app-spring-jvm:8080/api/SlimShady
 Requests/sec:   7136.70
 Transfer/sec:      0.99MB
 ~~~
-- Plot:
 
+### Lets summarize and plot data!
 
+summaryLatencyPlot.png summaryRequestsPlot.png
 
 
 
