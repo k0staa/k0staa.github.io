@@ -346,6 +346,7 @@ app-quarkus-native,0.892,0.013,0.016,0.014,0.014,0.012,0.012,0.014,0.014,0.012,0
 The first launch of each container is noticeably slower but I have kept this data in results.
 
 - Plot:
+
  ![Quarkus VS Spring Start Times Plot]({{ site.url }}/assets/images/startTimesPlot.png)
 
 As you can see, Quarkus (native) wins with a significant advantage.
@@ -358,6 +359,7 @@ app-spring-boot,26.882397
 app-quarkus-native,47.413896
 ~~~
 - Plot:
+
  ![Quarkus VS Spring App Sizes Plot]({{ site.url }}/assets/images/appSizesPlot.png)
 
 The native application built using Quarkus has the largest size, but keep in mind that we don't need Java Runtime with Quarkus Native, so it can really save us a lot.
@@ -371,6 +373,7 @@ app-spring-boot,287.3,601.5
 app-quarkus-native,6.488,282.5
 ~~~
 - Plot:
+
  ![Quarkus VS Spring App Ram Plot]({{ site.url }}/assets/images/appRamPlot.png )
 As you can see, Quarkus also wins the competition.
 
@@ -498,8 +501,11 @@ Transfer/sec:    339.70KB
 
 ### Lets summarize and plot data!
 First let's see latency for our requests:
+
  ![Quarkus VS Spring Summary Plot With Latency]({{ site.url }}/assets/images/summaryLatencyPlot.png)
+
 Requests per second:
+
  ![Quarkus VS Spring Summary Plot With Req per sec]({{ site.url }}/assets/images/summaryRequestsPlot.png)
 
 As you can see Quarkus is doing well, however, the warm-up Spring Boot came out best. To sum up, if we have a microservice environment in which we often launch new instances and we care about immediate performance, it is worth using Quarkus. On the other hand, if we have long-lived service, you can easily stay with the good old Spring Boot. Of course, the size of the application and the need for RAM are also important considerations - these can be important indicators when choosing a framework. Quarkus is still a young project but it is worth paying attention to it.
