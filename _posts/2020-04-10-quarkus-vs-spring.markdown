@@ -500,7 +500,7 @@ Transfer/sec:    339.70KB
 ~~~
 
 ### Lets summarize and plot data!
-First let's see latency for our requests:
+First let's see latency for our requests. I take average latencies:
 
  ![Quarkus VS Spring Summary Plot With Latency]({{ site.url }}/assets/images/summaryLatencyPlot.png)
 
