@@ -1,5 +1,5 @@
 ---
-title:  "Spring Boot 2 VS Quarkus - framworks comparison"
+title:  "Spring Boot 2 vs Quarkus - comparison"
 excerpt: "Playing with Quarkus using Kotlin and comparing it with same application written using Spring Boot 2"
 header:
   overlay_image: /assets/images/post_teaser.jpeg
