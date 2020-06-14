@@ -5,7 +5,7 @@ header:
   overlay_image: /assets/images/post_teaser.jpeg
   overlay_filter: 0.5 # same as adding an opacity of 0.5 to a black background
   caption: "Photo credit: [Markus Spiske](http://freeforcommercialuse.net)"
-date:   2020-02-09 14:52:00 +0200
+date:   2020-06-12 13:17:00 +0200
 tags: jupyter neural-netowrk python opencv 
 ---
 Machine learning today allows you to achieve very interesting effects. Probably everyone has heard about [Deepfake] (https://en.wikipedia.org/wiki/Deepfake). In today's post I wanted to show you how much this technology is available for everybody this days.
@@ -16,7 +16,7 @@ Using my repository you will be able to create face image animations using the i
 ...or to create face image animations using the previously created video of your face:
 [Animation from video]({{ site.url }}/assets/images/animate_from_video.gif )
 
-In this post I will show the code from my repository [real-time-image-animation-docker] (https://github.com/k0staa/real-time-image-animation-docker) but I would not created that without other people's work. Projects I used:
+In this post I will show the code from my repository [real-time-example-of-first-order-motion-model-for-image-animation](https://github.com/k0staa/real-time-example-of-first-order-motion-model-for-image-animation)but I would not created that without other people's work. Projects I used:
 
 [AliaksandrSiarohin/first-order-model](https://github.com/AliaksandrSiarohin/first-order-model)
 
@@ -35,7 +35,7 @@ Machine learning model used in the program was described in paper:
 
 ### Short explanation on how the model works
 [ML model ]({{ site.url }}/assets/images/real-time-image-anim-model.png )
-In short, the model decouples appearance and motion information using a self-supervised formulation. To support complex motions, it uses a representation consisting of a set of learned keypoints along with their local affine transformations. At the end it combines the appearance extracted from the source image with the motion derived from the video.
+In short, the model decouples appearance and motion information. To support complex motions, it uses a representation consisting of a set of learned keypoints along with their local affine transformations. At the end it combines the appearance extracted from the source image with the motion derived from the video.
 
 I encourage you to watch the video of one of the authors of the model.
 [![First Order Motion Model for Image Animation](https://img.youtube.com/vi/u-0cQ-grXBQ/0.jpg)](https://www.youtube.com/watch?v=u-0cQ-grXBQ)
@@ -62,7 +62,7 @@ http://127.0.0.1:8888/?token=edb9623d6c4ff0eac3096f88bb53ed1f3cfefdd9468f06ab
 ```
 After you open the Jupyter please run `demo.ipynb` notebook. I will explain few things here but you can also follow instructions and notes included in jupyter notebook.
 
-### Quick explanation of notebook sections
+### Explanation of notebook sections
 #### Load imports and setup
 It's one important thing here aprat from imports. Please set `USE_CPU` to `False` if you don't have CUDA compatible graphic card.
 
@@ -71,6 +71,7 @@ In this section you have to choose the image to be animated. You can choose anyo
 1. square proportions
 2. the background has an even color
 3. the face is clearly visible
+In this section we also resizing image to 256x256 and cutting color to three channels.
 
 #### Create a model and load checkpoints
 We use a trained model here so we have to download it. I have created a function that will automatically download the model and extract it to the `extract` folder if it does not already exist.
@@ -79,32 +80,34 @@ We use a trained model here so we have to download it. I have created a function
 Now is the time to record the video that will be used to animate the previously selected photo. You can skip that and use video that I provieded in repository (`temp/test_video_cropped.avi`), if you wan't that please jump to **Resizing source video and image** section. You can also skip creating animation from prepared video and go straight to the **Real time image animation** section from here and try real time animation!
 
 #### Crop and scale video
-Recorded video need to be croped and scaled so only your face will be visible in it. The library [1adrianb/face-alignment] (https://github.com/1adrianb/face-alignment) is used to search for the right area to crop in video. After running the `CropVideo` method and `print (commands)`, the corresponding parameters for the `ffmpeg` program, will be displayed:
+Recorded video need to be croped and scaled so only your face will be visible in it. The library [1adrianb/face-alignment] (https://github.com/1adrianb/face-alignment) is used to search for the right area to crop in video:
 ```
-['ffmpeg -i temp/source_video.avi -ss 0.0 -t 7.090909090909091 -filter:v "crop=293:294:147:120, scale=256:256" crop.mp4']
+class CropVideoArgs:
+    def __init__(self, video_input):
+        self.inp = video_input
+        self.image_shape = (256,256)
+        self.increase = 0.1
+        self.iou_with_initial = 0.25
+        self.min_frames = 150
+        self.cpu = USE_CPU
+args = CropVideoArgs(VIDEO_RECORDING)
+
+commands = process_video(args)
 ```
-You need to move crop parameters to the next cell where `ffmpeg` is run. So in this example you need to take `293`,`294`,`147`,`120` and set `ffmped` like that:
-```
-(ffmpeg
-.input(saved_video_file_name)
-.filter('crop', out_w='293', out_h='294', x='147', y='120')
-.filter('scale', size='256:256', force_original_aspect_ratio='disable')
-.output("temp/source_video_cropped.avi")
-.overwrite_output()
-.run()
-)
-```
+After you run above cell, program will search for any faces in provided video and the corresponding parameters for the `ffmpeg` program, will be returned. You could provide long file with many different faces and program will find all of them and it returning also time (start,end) when face is appearing in recording. For simplicity I use only the first founded face and I use these parameters in the next cell to call `ffmpeg`.
+
 This process can be slow when you not using CUDA...
 
-#### Resizing source video and image 
-Both video and source image is resized to 256x256.
+#### Resizing source video 
+This section automatically selects a recording. If no new recording is available(`VIDEO_RECORDING_CROPED`), a test recording is used (`VIDEO_RECORDING_CROPED_TEST`). Test recording is just video with my ugly face :suspect: . 
+Video recording is also resized to 256x256 and only three color channels are used.
 
 #### Perform image animation
-In this section, we will do animation using the model. There are two important parameters which can produce different results:
-- `relative` - if set to `True` it is using relative keypoint displacement and if set to `False` it is using absolute coordinates. Using absolute coordinates, there are no special requirements for the source video and the appearance of the source image. However, as mentioned by author of the model this usually leads to poor performance, because irrelevant details such as shape are transferred. So using relative coordinates it's usually better but requires that the object in the first frame of the video and in the source image have the same pose. 
-- `adapt_movement_scale` - if set to `True` 
+In this section, we will do animation using the model. There are important parameter `relative` which can produce different results:
+ - when `True` it is using relative keypoint displacement 
+ - when `False` it is using absolute coordinates. Using absolute coordinates, there are no special requirements for the source video and the appearance of the source image. However, as mentioned by author of the model this usually leads to poor performance, because irrelevant details such as shape are transferred. So using relative coordinates it's usually better but requires that the object in the first frame of the video and in the source image have the same pose. 
 
-I leave three combinations from original project and you can do all of them and choose the best. All resulting recordings are saved in `temp` folder.
+I leave two combinations from original project and you can do any of them and choose the best. All resulting recordings are saved in `temp` folder.
 
 #### Save animation result with source video and possibly convert to GIF
 You can create video file with source image and animation and also convert it to GIF. It will look lie this:
@@ -114,5 +117,5 @@ You can create video file with source image and animation and also convert it to
 Here is the coolest part. You can do animation in real time. The camera image is croped and scaled in real time using OpenCV. The result is visible in frame and also recorded to a file.
 
 ### Summary
-You can find all the source code in my repository [GitHub account](https://github.com/k0staa/real-time-image-animation-docker). And don't forget to give some :star2: to authors of other projects mentioned in the beggining ! 
+You can find all the source code in my repository [GitHub account](https://github.com/k0staa/real-time-example-of-first-order-motion-model-for-image-animation). And don't forget to give some :star2: to authors of other projects mentioned in the beggining ! 
 Have fun and thanks for reading!
