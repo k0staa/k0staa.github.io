@@ -8,19 +8,19 @@ header:
 date:   2020-06-12 13:17:00 +0200
 tags: jupyter neural-netowrk python opencv 
 ---
-Machine learning today allows you to achieve very interesting effects. Probably everyone has heard about [Deepfake] (https://en.wikipedia.org/wiki/Deepfake). In today's post I wanted to show you how much this technology is available for everybody this days.
+Machine learning today allows you to achieve very interesting effects. Probably everyone has heard about [Deepfake](https://en.wikipedia.org/wiki/Deepfake){:target="_blank"}. In today's post I wanted to show you how much this technology is available for everybody this days.
 
 Using my repository you will be able to create face image animations using the image of your face recorded in real time on the camera:
-[Animation from webcam]({{ site.url }}/assets/images/animate_from_webcam.gif )
+![Animation from webcam]({{ site.url }}/assets/images/animate_from_webcam.gif)
 
 ...or to create face image animations using the previously created video of your face:
-[Animation from video]({{ site.url }}/assets/images/animate_from_video.gif )
+![Animation from video]({{ site.url }}/assets/images/animate_from_video.gif)
 
-In this post I will show the code from my repository [real-time-example-of-first-order-motion-model-for-image-animation](https://github.com/k0staa/real-time-example-of-first-order-motion-model-for-image-animation)but I would not created that without other people's work. Projects I used:
+In this post I will show the code from my repository [real-time-example-of-first-order-motion-model-for-image-animation](https://github.com/k0staa/real-time-example-of-first-order-motion-model-for-image-animation){:target="_blank"} but I would not created that without other people's work. Projects I used:
 
-[AliaksandrSiarohin/first-order-model](https://github.com/AliaksandrSiarohin/first-order-model)
+[AliaksandrSiarohin/first-order-model](https://github.com/AliaksandrSiarohin/first-order-model){:target="_blank"}
 
-[anandpawara/Real_Time_Image_Animation](https://github.com/anandpawara/Real_Time_Image_Animation)
+[anandpawara/Real_Time_Image_Animation](https://github.com/anandpawara/Real_Time_Image_Animation){:target="_blank"}
 
 Machine learning model used in the program was described in paper:
 ```
@@ -34,11 +34,13 @@ Machine learning model used in the program was described in paper:
 ```
 
 ### Short explanation on how the model works
-[ML model ]({{ site.url }}/assets/images/real-time-image-anim-model.png )
+![ML model ]({{ site.url }}/assets/images/real-time-image-anim-model.png )
+
 In short, the model decouples appearance and motion information. To support complex motions, it uses a representation consisting of a set of learned keypoints along with their local affine transformations. At the end it combines the appearance extracted from the source image with the motion derived from the video.
 
 I encourage you to watch the video of one of the authors of the model.
-[![First Order Motion Model for Image Animation](https://img.youtube.com/vi/u-0cQ-grXBQ/0.jpg)](https://www.youtube.com/watch?v=u-0cQ-grXBQ)
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/u-0cQ-grXBQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ### How to run project
 In order to run the project you need to have Docker installed on your machine. I have been tested this project using Docker 19.03.10 version with `nvidia-container-toolkit 1.1.2-1` (if you don't have CUDA compatible graphics card you don't need `nvidia-container-toolkit`). 
@@ -80,8 +82,8 @@ We use a trained model here so we have to download it. I have created a function
 Now is the time to record the video that will be used to animate the previously selected photo. You can skip that and use video that I provieded in repository (`temp/test_video_cropped.avi`), if you wan't that please jump to **Resizing source video and image** section. You can also skip creating animation from prepared video and go straight to the **Real time image animation** section from here and try real time animation!
 
 #### Crop and scale video
-Recorded video need to be croped and scaled so only your face will be visible in it. The library [1adrianb/face-alignment] (https://github.com/1adrianb/face-alignment) is used to search for the right area to crop in video:
-```
+Recorded video need to be croped and scaled so only your face will be visible in it. The library [1adrianb/face-alignment] (https://github.com/1adrianb/face-alignment){:target="_blank"} is used to search for the right area to crop in video:
+```python
 class CropVideoArgs:
     def __init__(self, video_input):
         self.inp = video_input
@@ -111,11 +113,15 @@ I leave two combinations from original project and you can do any of them and ch
 
 #### Save animation result with source video and possibly convert to GIF
 You can create video file with source image and animation and also convert it to GIF. It will look lie this:
-[Animation from video]({{ site.url }}/assets/images/animate_from_video.gif )
+
+![Animation from video]({{ site.url }}/assets/images/animate_from_video.gif)
 
 #### Real time image animation
 Here is the coolest part. You can do animation in real time. The camera image is croped and scaled in real time using OpenCV. The result is visible in frame and also recorded to a file.
 
 ### Summary
-You can find all the source code in my repository [GitHub account](https://github.com/k0staa/real-time-example-of-first-order-motion-model-for-image-animation). And don't forget to give some :star2: to authors of other projects mentioned in the beggining ! 
+You can find all the source code in my repository
+ <a href="https://github.com/k0staa/real-time-example-of-first-order-motion-model-for-image-animation" target="_blank">GitHub account</a>
+
+And don't forget to give some :star2: to authors of other projects mentioned in the beggining ! 
 Have fun and thanks for reading!
