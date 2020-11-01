@@ -208,7 +208,7 @@ class KotlinRulezService {
 }
 ```
 
-There is one class written in Java in `module1` and that is the main class of the application: ʻio.jitpack.App.java`:
+There is one class written in Java in `module1` and that is the main class of the application: `io.jitpack.App.java`:
 
 ```java
 public class App 
@@ -239,7 +239,7 @@ public class App
 
 Running `mvn compile` after all this changes should be no problem.
 
-As you can see, adding Kotlin to a project using Maven is very simple. Now let's try to do the same with the project using Gradle. I will approach this task in the same way as before, i.e. using the first project that Google will find me after entering "github gradle multi module". This time it is a project [gradle-multi-module] (https://github.com/gwonsungjun/gradle-multi-module).
+As you can see, adding Kotlin to a project using Maven is very simple. Now let's try to do the same with the project using Gradle. I will approach this task in the same way as before, i.e. using the first project that Google will find me after entering "github gradle multi module". This time it is a project [gradle-multi-module](https://github.com/gwonsungjun/gradle-multi-module) .
 
 Our configuration is as follows:
 
@@ -413,10 +413,10 @@ class MemberServiceCustom(private val memberRepository: MemberRepository) {
 }
 ```
 
-We now need to remove the old Java service because we have a name conflict in this package. We can check all our work by running the test `com.sungjun.api.service.MemberServiceCustomTest`, which is used by the mentioned service. And that's the end of the changes needed to use Kotlin using Gradle.
+We now need to remove the old Java service because we have a name conflict in this package. We can check all our work by running the test `com.sungjun.api.service.MemberServiceCustomTest`, which is used by the mentioned service. And that's the end of the changes needed to use Kotlin Gradle project.
 
 ### Summary
-I hope that in this text I encouraged the use of Kotlin in your projects. I know that commercial projects can be very complex, but let's remember that with a bit of work we can bring the project into the twenty-first century. Quite often we try to support ourselves with various libraries that can complicate the building process. As you can see in the text, we can easily convert them all into a language that is very pleasant, efficient and can significantly improve the reception of the project by current and new programmers.
+I hope that in this text I encouraged the use of Kotlin in your projects. I know that commercial projects can be very complex, but let's remember that with a bit of work we can bring the project into the twenty-first century. Quite often we try to support ourselves with various libraries that can complicate the building process. As you can see in the text, we can easily switch them all into a language that is very pleasant, efficient and can significantly improve the reception of the project by current and new programmers.
 
 At my current work, we write almost all of our server applications in Kotlin. We have never had problems with introducing this language to the project, as well as with the onboarding of new programmers who only dealt with Java before.
 
