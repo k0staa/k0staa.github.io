@@ -27,7 +27,7 @@ locale                   : "pl"
 title                    : "code-addict"
 title_separator          : "-"
 name                     : "Michał Kostewicz"
-description              : "Blog about software development. It's my hobby to write lines of code and deepen new technologies and I'd like to share my passion with you! I will write about Java, Python, C#, C++,relational and not relational databases, machine learning, data mining... so about everything really."
+description              : "Blog about software development. It's my hobby to write lines of code and deepen new technologies and I'd like to share my passion with you! I will write about JVM languages, Python, C#, C++,relational and not relational databases, machine learning, data mining... so about everything really."
 url                      : "http://code-addict.pl"
 baseurl                  : # the subpath of your site, e.g. "/blog"
 teaser                   : "/assets/images/default_post_teaser.jpg"
@@ -87,14 +87,14 @@ analytics:
     tracking_id          : "UA-102651793-1"
 
 
-google_ad_client        : true
+google_ad_client        : false
 
 
 # Site Author
 author:
   name             : "Michał Kostewicz"
   avatar           : "/assets/images/my-photo.jpg"
-  bio              : "Hi! I'm Michał Kostewicz, creator of this blog. I'm living in Warsaw, Poland. I am a programmer by profession but it is also one of my passions. I'm using mostly Java but it is just a tool for me so I often use other languages. I have wonderful wife and daughter that I loved even more than my job."
+  bio              : "Hi! I'm Michał Kostewicz, creator of this blog. I'm living in Warsaw, Poland. I am a programmer by profession but it is also one of my passions. I'm using mostly Java and Kotlin but it is just a tool for me so I often use other languages. My first steps were writing simple Basic programs on an eight-bit Atari."
   location         : "Warsaw, Poland"
   email            : "m.kostewicz84@gmail.com"
   uri              :
