@@ -25,7 +25,7 @@ For those who do not know the advantages of Kotlin, let's start by answering the
 
 Ok, once we've answered the question is it worth it, we need to think about how to do it. I assume you are using some kind of build tool in your projects. So let's start with Maven.
 
-For example, I used the first multi-module project that I found on Google by typing ["github maven multi module"] (https://github.com/jitpack/maven-modular).
+For example, I used the first multi-module project that I found on Google by typing ["github maven multi module"](https://github.com/jitpack/maven-modular) .
 
 Project root configuration:
 
@@ -62,12 +62,15 @@ Project root configuration:
 ```
 It's time to add Kotlin. So I add some necessary elements to the main `pom.xml`:
 1. The variable with the Kotlin version we will use:
+
 ```xml
  <properties>
     <kotlin.version>1.4.10</kotlin.version>
   </properties>
 ```
+
 2. Kotlin standard library dependency which provides many useful functions:
+
 ```xml
  <dependencies>
     <dependency>
@@ -77,7 +80,9 @@ It's time to add Kotlin. So I add some necessary elements to the main `pom.xml`:
     </dependency>
   </dependencies>
 ```
+
 3. We add to the `build` section the configuration of the source code paths and a plugin that compiles Kotlin's source code:
+
 ```xml
 <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
 <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
@@ -115,6 +120,7 @@ It's time to add Kotlin. So I add some necessary elements to the main `pom.xml`:
 ```
 
 The entire configuration looks like this:
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -189,9 +195,10 @@ The entire configuration looks like this:
     </plugins>
   </build>
 </project>
-
 ```
-Now is the time to add some code written in Kotlin. So I'm adding the `kotlin` directory to `module1` and the package that already exists in the project, as well as a simple service ʻio.jitpack.KotlinRulezService.kt`, with the following content:
+
+Now is the time to add some code written in Kotlin. So I'm adding the `kotlin` directory to `module1` and the package that already exists in the project, as well as a simple service `io.jitpack.KotlinRulezService.kt`, with the following content:
+
 ```kotlin
 class KotlinRulezService {
     
@@ -202,6 +209,7 @@ class KotlinRulezService {
 ```
 
 There is one class written in Java in `module1` and that is the main class of the application: ʻio.jitpack.App.java`:
+
 ```java
 public class App 
 {
@@ -213,7 +221,9 @@ public class App
     }
 }
 ```
+
 Let's add to it, call to our Kotlin service. After the changes, it should look like this:
+
 ```java
 public class App 
 {
@@ -229,9 +239,10 @@ public class App
 
 Running `mvn compile` after all this changes should be no problem.
 
-As you can see, adding Kotlin to a project using Maven is very simple. Now let's try to do the same with the project using Gradle. I will approach this task in the same way as before, i.e. using the first project that Google will find me after entering "github gradle multi module". This time it is a project [https://github.com/gwonsungjun/gradle-multi-module] (https://github.com/gwonsungjun/gradle-multi-module).
+As you can see, adding Kotlin to a project using Maven is very simple. Now let's try to do the same with the project using Gradle. I will approach this task in the same way as before, i.e. using the first project that Google will find me after entering "github gradle multi module". This time it is a project [gradle-multi-module] (https://github.com/gwonsungjun/gradle-multi-module).
 
 Our configuration is as follows:
+
 ```groovy
 buildscript {
     ext {
@@ -279,18 +290,22 @@ project(':sample-admin') {
     }
 }
 ```
+
 We can build the project using `./gradlew build` command. It's time to add Kotlin:
 
-1. As in the previous case, we need to add a plugin that will compile the Kotlin code for us. To do this, add the following code to the main `build.gradle` file under the` buildscript` section:
+1. As in the previous case, we need to add a plugin that will compile the Kotlin code for us. To do this, add the following code to the main `build.gradle` file under the `buildscript` section:
+
 ```
 plugins {
     id "org.jetbrains.kotlin.jvm" version "1.3.72"
 }
 ```
+
 For this project, it was necessary to downgrade to a lower version of the plug-in due to the use of Gradle version 4.10.3 in the project.
 2. In the same file we have a `subprojects` section to which we need to add an `apply plugin: 'kotlin'` so that we can use Kotlin code in each sub-module.
 3. We also need to add a dependency to the Kotlin standard library: `implementation "org.jetbrains.kotlin: kotlin-stdlib-jdk8"` in dependencies of the `subprojects` section.
 Ultimately, the main configuration file looks like this:
+
 ```groovy
 buildscript {
     ext {
@@ -344,9 +359,11 @@ project(':sample-admin') {
     }
 }
 ```
+
 We can now start writing some code in Kotlin. In the sub-module `sample-api`, add the `kotlin` directory in the `src/main` directory and add the `com.sungjun.api.service` package to it. As I mentioned at the beginning of the text, if we use IntelliJ Idea, we can easily convert code written in Java into Kotlin.
 
 I think it would be nice to try it on the example of the service `com.sungjun.api.service.MemberServiceCustom` in the module mentioned above. So I will create a Kotlin class with the same name: `MemberServiceCustom.kt` and paste the following Java code into it:
+
 ```java
 import com.sungjun.common.member.Member;
 import com.sungjun.common.repository.MemberRepository;
@@ -366,7 +383,9 @@ public class MemberServiceCustom {
     }
 }
 ```
+
 The IDE itself will ask whether to convert the code, and as a result of this operation we will get the following Kotlin code:
+
 ```kotlin
 import com.sungjun.common.member.Member
 import com.sungjun.common.repository.MemberRepository
@@ -380,7 +399,9 @@ class MemberServiceCustom(private val memberRepository: MemberRepository) {
 
 }
 ```
+
 The first thing that catches your eye is the brevity of this code, and you can write it down in even more compact form:
+
 ```kotlin
 import com.sungjun.common.member.Member
 import com.sungjun.common.repository.MemberRepository
@@ -391,6 +412,7 @@ class MemberServiceCustom(private val memberRepository: MemberRepository) {
     fun singup(member: Member) = memberRepository.save(member).id
 }
 ```
+
 We now need to remove the old Java service because we have a name conflict in this package. We can check all our work by running the test `com.sungjun.api.service.MemberServiceCustomTest`, which is used by the mentioned service. And that's the end of the changes needed to use Kotlin using Gradle.
 
 ### Summary
