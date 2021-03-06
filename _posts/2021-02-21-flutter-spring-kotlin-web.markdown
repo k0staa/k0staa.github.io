@@ -26,16 +26,18 @@ In the project repository I prepared the docker-compose configuration with Keycl
 
 If you want to do Keycloak configuration manually you can read it e.g. [here](https://www.baeldung.com/spring-boot-keycloak#keycloakserver)
 
-
+IMPORTANT -> Web Origins must be -> * this is CORS!!!
 ### Flutter application
 Flutter is quite a new framework, and an even newer part of it is dedicated to web development.
-To start playing with Flutter, install it on your system according to the instructions on [this page](https://flutter.dev/docs/get-started/install). And to add web support, follow the instruction on [this page](https://flutter.dev/docs/get-started/web). It basically comes down to issuing the following commands before creating a flutter project:
+To start playing with Flutter, install it on your system according to the instructions on [this page](https://flutter.dev/docs/get-started/install). And to add web support, follow the instruction on [this page](https://flutter.dev/docs/get-started/web). Currently, Flutter version> 2.0 already supports web development in stable version (until recently in beta version). If you are uisng Flutter in version below 2.0 you need to issue following commands before creating a flutter project:
 ```sh
  flutter channel beta
  flutter upgrade
  flutter config --enable-web
 ```
-Running `flutter channel beta` replaces your current version of Flutter with the beta version which supports web development. Then all you have to do is run `flutter create myapp` and we have the Flutter For Web application ready.
+Running `flutter channel beta` replaces your current version of Flutter with the beta version which supports web development (Flutter < 2.0). 
+
+Then all you have to do is run `flutter create myapp` and we have the Flutter For Web application ready.
 In order not to have to install Flutter on my system and be able to easily transfer the project to another computer, I added the `Dockerfile_dev` file to the project with the appropriate Flutter configuration, thanks to which I can use the Visual Studio Code Remote - Containers extension. This extension lets you use a Docker container as a full-featured development environment. You can read more about it on [this page](https://code.visualstudio.com/docs/remote/containers). The mentioned `Dockerfile_dev` file looks like this:
 ```sh
 FROM ubuntu:20.04
@@ -48,15 +50,12 @@ ENV FLUTTER_DEBUG_PORT="42000"
 RUN apt-get update && apt-get install -y unzip xz-utils git openssh-client curl && apt-get upgrade -y 
 
 # Install flutter beta
-RUN curl -L https://storage.googleapis.com/flutter_infra/releases/stable/linux/flutter_linux_1.22.6-stable.tar.xz | tar -C /opt -xJ
+RUN curl -L https://storage.googleapis.com/flutter_infra/releases/stable/linux/flutter_linux_2.0.1-stable.tar.xz | tar -C /opt -xJ
 
 ENV PATH="$PATH":"/opt/flutter/.pub-cache/bin:/opt/flutter/bin"
 
 # Enable web capabilities
-RUN flutter channel beta
 RUN flutter upgrade
-RUN flutter config --enable-web
-RUN flutter pub global activate webdev
 RUN flutter update-packages
 ```
 As you can see, there is nothing unusual here, we download FLutter and configure it so that we can create web projects.
