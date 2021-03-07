@@ -12,21 +12,33 @@ I wanted to play with several technologies in this project. First thing I wanted
 The entire project can be run with `docker-compose`. Configuration:
 ```yaml
 
-
-
-
 ```
+
 ### Keycloak
 Keycloak is an open source software product to allow single sign-on with identity and access management. For the purpose of this application it will serve as an authentication server. The entire authentication and authorization process will be as follows:
  1. The user trying to enter the secured endpoint will be redirected to the Keycloak login page.
- 2. After logging in, Keycloak returns the JWT token
- 3. Attempting to get data from a secured pointpoint (API)
- 4. The server checks the signature of the JWT token with the public endpoint in Keycloak and authenticates the action. 
-In the project repository I prepared the docker-compose configuration with Keycloak and its configuration. Configuration is imported at container startup (see `realm-export.json`), the file contains the configuration of the entire realm, including client, role and user (username -> `user` , password -> `password`).
+ 2. After logging in, Keycloak returns the JWT token.
+ 3. Attempting to get data from a secured pointpoint (API) using a JWT token.
+ 4. The API server checks the signature of the JWT token with the public endpoint in Keycloak and authenticates the action. 
+In the project repository I prepared the `docker-compose` configuration with Keycloak and its configuration. Configuration is imported at container startup (see `realm-export.json`), the file contains the configuration of the entire realm, including client, role and user (username -> `user` , password -> `password`). If you want to view the Keycloak configuration, you can do it by entering the [administrator console](http://localhost:8081/auth/admin). Username and password are configured in `docker-compose`:
+```yaml
+...
+environment:
+      - KEYCLOAK_USER=admin 
+      - KEYCLOAK_PASSWORD=admin
+...
+```
+The most important thing for us is the configuration of the client. Go to `Clients` and choose` login-app` from the list. The imported configuration should look like this:
+![Keycloak_client_config1_img]({{ site.url }}/assets/images/keycloak_client1.png) 
+![Keycloak_client_config2_img]({{ site.url }}/assets/images/keycloak_client2.png) 
+Note the configuration of `Valid Redirect URIs` and` Web Origins`. The first is important when we use the Keycloak login page to authenticate the user. In our case, we will not use it. The second indicates domains that can request Keycloak API (CORS). If the application that is our GUI is running on the same domain as the keycloak then you do not need to configure anything here. Otherwise, enter a specific domain name. The current value of `*` is not safe and may only be used for development purposes.
 
-If you want to do Keycloak configuration manually you can read it e.g. [here](https://www.baeldung.com/spring-boot-keycloak#keycloakserver)
+Entering `Roles` we can also see one added `user` role:
+![Keycloak_role_config_img]({{ site.url }}/assets/images/keycloak_roles.png) 
 
-IMPORTANT -> Web Origins must be -> * this is CORS!!!
+
+If you want to get more info about Keycloak configuration read about it e.g. [Keycloak docs](https://www.keycloak.org/docs/latest/securing_apps/) , [Baeldung blog](https://www.baeldung.com/spring-boot-keycloak#keycloakserver)
+
 ### Flutter application
 Flutter is quite a new framework, and an even newer part of it is dedicated to web development.
 To start playing with Flutter, install it on your system according to the instructions on [this page](https://flutter.dev/docs/get-started/install). And to add web support, follow the instruction on [this page](https://flutter.dev/docs/get-started/web). Currently, Flutter version> 2.0 already supports web development in stable version (until recently in beta version). If you are uisng Flutter in version below 2.0 you need to issue following commands before creating a flutter project:
@@ -108,7 +120,6 @@ Sometimes VS Code shows you errors in the code, click on the Remote-Containers e
 The application acting as the project API is written with Kotlin and Spring Boot 2 using the Spring WebFlux module. The application has two endpoints:
 ```kotlin
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
@@ -116,16 +127,14 @@ import reactor.core.publisher.Mono
 @RestController
 class ApiController {
 
-    @CrossOrigin
     @PreAuthorize("permitAll()")
     @GetMapping("/not-secured")
     fun getNonSecuredMessage() = Mono.just(ApiResponse("Server return non secured message"))
 
-    @CrossOrigin
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/secured")
     fun getSecuredMessage() = Mono.just(ApiResponse("Server return SECURED message"))
-
+}
 ```
 As you can see one of them is secured and one permits all connections. 
 Security configuration using JWT tokens for an application using WebFlux should looks as follows:
@@ -137,7 +146,15 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter
 import org.springframework.security.web.server.SecurityWebFilterChain
+import org.springframework.web.cors.reactive.CorsWebFilter
 
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
+
+
+/**
+ * For Reactive web applications (WebFlux)
+ **/
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 class ReactiveSecurityConfig {
@@ -164,8 +181,21 @@ class ReactiveSecurityConfig {
             }
         return http.build()
     }
+
+    @Bean
+    fun corsWebFilter(): CorsWebFilter? {
+        val corsConfig = CorsConfiguration()
+        corsConfig.allowedOrigins = listOf("*")
+        corsConfig.maxAge = 8000L
+        corsConfig.allowedMethods = listOf("PUT", "GET")
+        val source = UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/**", corsConfig)
+        return CorsWebFilter(source)
+    }
 }
 ```
+As you can see, I also added a simplified CORS filter that allows you to connect from any foreign domain. Of course, this is not recommended in the set-up and should be avoided from production.
+
 An important point is setting `jwt.jwtAuthenticationConverter(ReactiveJwtAuthenticationConverterAdapterKeycloakRealmRoleConverter())`. `KeycloakRealmRoleConverter` allows to extract roles from a JWT token:
 
 ```kotlin
