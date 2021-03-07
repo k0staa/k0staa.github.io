@@ -181,21 +181,7 @@ class ReactiveSecurityConfig {
             }
         return http.build()
     }
-
-    @Bean
-    fun corsWebFilter(): CorsWebFilter? {
-        val corsConfig = CorsConfiguration()
-        corsConfig.allowedOrigins = listOf("*")
-        corsConfig.maxAge = 8000L
-        corsConfig.allowedMethods = listOf("PUT", "GET")
-        val source = UrlBasedCorsConfigurationSource()
-        source.registerCorsConfiguration("/**", corsConfig)
-        return CorsWebFilter(source)
-    }
-}
 ```
-As you can see, I also added a simplified CORS filter that allows you to connect from any foreign domain. Of course, this is not recommended in the set-up and should be avoided from production.
-
 An important point is setting `jwt.jwtAuthenticationConverter(ReactiveJwtAuthenticationConverterAdapterKeycloakRealmRoleConverter())`. `KeycloakRealmRoleConverter` allows to extract roles from a JWT token:
 
 ```kotlin
@@ -218,7 +204,28 @@ class KeycloakRealmRoleConverter : JwtAuthenticationConverter() {
 }
 
 ```
-In the repository I also added a sample configuration for a project that does not use WebFlux (`pl.codeaddict.flutterapi.config.nonreactive` package).
+I also added a simplified CORS filter configuration that allows you to connect from any foreign domain. Of course, this is not recommended in the set-up and should be avoided in production environment:
+```kotlin
+import org.springframework.context.annotation.Configuration
+import org.springframework.web.reactive.config.CorsRegistry
+import org.springframework.web.reactive.config.EnableWebFlux
+import org.springframework.web.reactive.config.WebFluxConfigurer
+
+
+@Configuration
+@EnableWebFlux
+class CorsGlobalConfiguration : WebFluxConfigurer {
+    override fun addCorsMappings(corsRegistry: CorsRegistry) {
+        corsRegistry.addMapping("/**")
+            .allowedOrigins("*")
+            .allowedMethods("PUT", "GET", "POST")
+            .maxAge(3600)
+    }
+}
+```
+
+I've also pushed some sample configuration for a project that does not use WebFlux (`pl.codeaddict.flutterapi.config.nonreactive` package) to repository.
+
 In addition to the above classes, there are two more in the API project. First one serves as an endpoints response:
 ```kotlin
 data class ApiResponse(val message: String
@@ -235,6 +242,21 @@ fun main(args: Array<String>) {
 	runApplication<FlutterApiApplication>(*args)
 }
 ```
+Ok, lets have a look at `application.yml`:
+```yaml
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8081/auth/realms/kotlin-flutter-demo-realm/protocol/openid-connect/certs
+
+logging:
+  level:
+    org.springframework:
+      security: INFO
+```
+The first part is quite important. We are configuring the endpoint url that allows us to check the signature of the JWT token. Keycloak provides such an endpoint. The configuration for this is also added in `docker-compose.yml` file. Second part of the configuration is there to setup logging level in case of any troubles with security. 
 
 Last but not least project gradle configuration:
 
