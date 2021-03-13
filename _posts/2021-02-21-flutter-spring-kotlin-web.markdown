@@ -12,7 +12,7 @@ I wanted to play with several technologies in this project. First thing I wanted
 
 The entire project can be run using `docker-compose`:
 
-```yaml
+```
 version: "3.7"
 services:
   flutter-kotlin-api:
@@ -49,7 +49,7 @@ Keycloak is an open source software product that allow single sign-on with ident
  4. User can now attempt to enter `/secured` endpoint using a JWT token.
  5. The API server checks the signature of the JWT token with the public endpoint in Keycloak and authorize the action. 
 In prepared `docker-compose` configuration you can saw section with Keycloak and its configuration. Configuration is imported at container startup (see `realm-export.json`), the file contains the configuration of the entire realm, including client, role and user (username -> `user` , password -> `password`). If you want to view the Keycloak configuration, you can do it by entering the [administrator console](http://localhost:8081/auth/admin). Keycloak administrator username and password are configured in `docker-compose`:
-```yaml
+```
 ...
 environment:
       - KEYCLOAK_USER=admin 
@@ -57,11 +57,15 @@ environment:
 ...
 ```
 In the Keycloak configuration the most important thing for us is the configuration of the client. Go to `Clients` and choose` login-app` from the list. The imported configuration should look like this:
+
 ![Keycloak_client_config1_img]({{ site.url }}/assets/images/keycloak_client1.png) 
+
 ![Keycloak_client_config2_img]({{ site.url }}/assets/images/keycloak_client2.png) 
+
 Note the configuration of `Valid Redirect URIs` and` Web Origins`. The first is important when we use the Keycloak login page to authenticate the user(I am not discussing this approach in this post). The second indicates domains that can request Keycloak API (CORS). If the application that is our GUI is running on the same domain as the keycloak then you do not need to configure anything here. Otherwise, enter a specific domain name. The current value of `*` (which means that every domain had access) is not safe and may only be used for development purposes :fire:
 
 Entering `Roles` we can also see one added `user` role:
+
 ![Keycloak_role_config_img]({{ site.url }}/assets/images/keycloak_roles.png) 
 
 
@@ -115,7 +119,9 @@ It is also necessary to configure the VS Code extension. It is located in the fi
 ```
 We indicate in it the Dockerfile that we want to use and needed VS Code extensions which we will also use during development. There is also `postCreateCommand` which runs `flutter pub get` command (install packages) after container is created. There are many more configuration options - take a look at the documentation on the page I mentioned above.
 To run the docker configuration using the extension, click the green icon in the lower left corner of VS Code:
+
 ![VS_Code_remote_containers_img]({{ site.url }}/assets/images/vs_code_remote_containers.png)  
+
 There is no difference when developing with Visual Studio Code Remote - Containers extension. If, for example, we want to run the Flutter application in debug mode, all we have to do is install the Dart Debug Extension in Chrome. To run the application use following launch command: 
 
 ```sh
@@ -403,10 +409,13 @@ docker-compose up
 ```
 
 The application graphic interface should look like this:
+
 ![app_interface_1_img]({{ site.url }}/assets/images/app_interface_1.png)  
+
 There are two buttons in the middle. One runs the endpoint `/secured` and the second is for`/not-secured` endpoint. In the upper right corner you can see the `username`, which if the user is not logged in is `null` (yes, I know it's ugly :wink: ). There is an icon next to the `username` that leads to the login page.
 
 ![app_interface_3_img]({{ site.url }}/assets/images/app_interface_2.png)  
+
 If you click on the icon next to the `username`, you will be taken to the login page. You can login using the user data added in Keycloak in our imported realm configuration (username -> `user` , password -> `password`).
 
 ![app_interface_3_img]({{ site.url }}/assets/images/app_interface_3.png)  
