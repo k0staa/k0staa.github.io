@@ -8,19 +8,19 @@ header:
 date:   2021-02-21 17:20:00 +0200
 tags: kotlin keycloak flutter webflux spring spring-boot security 
 ---
-I wanted to play with several technologies in this project. First thing I wanted to see is how to do the authentication configuration in the Flutter application. I focused only on Flutter For Web although the project should be able to run on other platforms. I used Keycloak as the authentication server. Keycloak can be safely treated as a Swiss Army knife when it comes to authentication. The last topic is the method of authorization using the JWT token in the application which is the API of this project. I'm using Kotlin, Spring Boot, Web Flux, and the Spring Boot Oauth2 Resource Server library in this application.
+I wanted to play with several technologies in this project. First thing I wanted to see is how to do the authentication configuration in the Flutter application. I focused only on Flutter For Web although the project should be able to run on other platforms too. I used Keycloak as the authentication server. Keycloak can be safely treated as a swiss army knife when it comes to authentication. The last topic is the method of authorization using the JWT token in the application that will be used as an API. I'm using Kotlin, Spring Boot, Web Flux, and the Spring Boot Oauth2 Resource Server library.
 The entire project can be run with `docker-compose`. Configuration:
 ```yaml
 
 ```
 
 ### Keycloak
-Keycloak is an open source software product to allow single sign-on with identity and access management. For the purpose of this application it will serve as an authentication server. The entire authentication and authorization process will be as follows:
- 1. The user trying to enter the secured endpoint will be redirected to the Keycloak login page.
- 2. After logging in, Keycloak returns the JWT token.
- 3. Attempting to get data from a secured pointpoint (API) using a JWT token.
+Keycloak is an open source software product to allow single sign-on with identity and access management. For the purpose of this application it will serve as an authentication server. The entire authentication and authorization process will consist of the following steps:
+ 1. The user who want to access `/secured` endpoint need to first log in using login page.
+ 2. After logging in, we send username and password to Keycloak and  Keycloak returns the JWT token.
+ 3. User can now attempt to enter `/secured` endpoint using a JWT token.
  4. The API server checks the signature of the JWT token with the public endpoint in Keycloak and authenticates the action. 
-In the project repository I prepared the `docker-compose` configuration with Keycloak and its configuration. Configuration is imported at container startup (see `realm-export.json`), the file contains the configuration of the entire realm, including client, role and user (username -> `user` , password -> `password`). If you want to view the Keycloak configuration, you can do it by entering the [administrator console](http://localhost:8081/auth/admin). Username and password are configured in `docker-compose`:
+In the project repository I prepared the `docker-compose` configuration with Keycloak and its configuration. Configuration is imported at container startup (see `realm-export.json`), the file contains the configuration of the entire realm, including client, role and user (username -> `user` , password -> `password`). If you want to view the Keycloak configuration, you can do it by entering the [administrator console](http://localhost:8081/auth/admin). Keycloak administrator username and password are configured in `docker-compose`:
 ```yaml
 ...
 environment:
@@ -28,10 +28,10 @@ environment:
       - KEYCLOAK_PASSWORD=admin
 ...
 ```
-The most important thing for us is the configuration of the client. Go to `Clients` and choose` login-app` from the list. The imported configuration should look like this:
+In the Keycloak configuration the most important thing for us is the configuration of the client. Go to `Clients` and choose` login-app` from the list. The imported configuration should look like this:
 ![Keycloak_client_config1_img]({{ site.url }}/assets/images/keycloak_client1.png) 
 ![Keycloak_client_config2_img]({{ site.url }}/assets/images/keycloak_client2.png) 
-Note the configuration of `Valid Redirect URIs` and` Web Origins`. The first is important when we use the Keycloak login page to authenticate the user. In our case, we will not use it. The second indicates domains that can request Keycloak API (CORS). If the application that is our GUI is running on the same domain as the keycloak then you do not need to configure anything here. Otherwise, enter a specific domain name. The current value of `*` is not safe and may only be used for development purposes.
+Note the configuration of `Valid Redirect URIs` and` Web Origins`. The first is important when we use the Keycloak login page to authenticate the user(I am not discussing this approach in this post). The second indicates domains that can request Keycloak API (CORS). If the application that is our GUI is running on the same domain as the keycloak then you do not need to configure anything here. Otherwise, enter a specific domain name. The current value of `*` (which means that every domain had access) is not safe and may only be used for development purposes.
 
 Entering `Roles` we can also see one added `user` role:
 ![Keycloak_role_config_img]({{ site.url }}/assets/images/keycloak_roles.png) 
@@ -41,15 +41,15 @@ If you want to get more info about Keycloak configuration read about it e.g. [Ke
 
 ### Flutter application
 Flutter is quite a new framework, and an even newer part of it is dedicated to web development.
-To start playing with Flutter, install it on your system according to the instructions on [this page](https://flutter.dev/docs/get-started/install). And to add web support, follow the instruction on [this page](https://flutter.dev/docs/get-started/web). Currently, Flutter version> 2.0 already supports web development in stable version (until recently in beta version). If you are uisng Flutter in version below 2.0 you need to issue following commands before creating a flutter project:
+To start playing with Flutter, install it on your system according to the instructions on [this page](https://flutter.dev/docs/get-started/install). And to add web support, follow the instruction on [this page](https://flutter.dev/docs/get-started/web). Currently, Flutter version> 2.0 already supports web development in stable version (until recently only in beta version). If you are using Flutter in version below 2.0 you need to issue following commands before creating a flutter project:
 ```sh
  flutter channel beta
  flutter upgrade
  flutter config --enable-web
 ```
-Running `flutter channel beta` replaces your current version of Flutter with the beta version which supports web development (Flutter < 2.0). 
+Running `flutter channel beta` replaces your current version of Flutter with the beta version which supports web development. 
 
-Then all you have to do is run `flutter create myapp` and we have the Flutter For Web application ready.
+Then all you have to do is run `flutter create myapp` to create application skeleton.
 In order not to have to install Flutter on my system and be able to easily transfer the project to another computer, I added the `Dockerfile_dev` file to the project with the appropriate Flutter configuration, thanks to which I can use the Visual Studio Code Remote - Containers extension. This extension lets you use a Docker container as a full-featured development environment. You can read more about it on [this page](https://code.visualstudio.com/docs/remote/containers). The mentioned `Dockerfile_dev` file looks like this:
 ```sh
 FROM ubuntu:20.04
@@ -71,7 +71,7 @@ RUN flutter upgrade
 RUN flutter update-packages
 ```
 As you can see, there is nothing unusual here, we download FLutter and configure it so that we can create web projects.
-It is also necessary to configure the extension. It is located in the file `.devcontainer/devcontainer`:
+It is also necessary to configure the VS Code extension. It is located in the file `.devcontainer/devcontainer`:
 ```json
 {
 	"name": "Flutter",
@@ -88,10 +88,14 @@ It is also necessary to configure the extension. It is located in the file `.dev
 We indicate in it the Dockerfile that we want to use and needed VS Code extensions which we will also use during development. There is also `postCreateCommand` which runs `flutter pub get` command (install packages) after container is created. There are many more configuration options - take a look at the documentation on the page I mentioned above.
 To run the docker configuration using the extension, click the green icon in the lower left corner of VS Code:
 ![VS_Code_remote_containers_img]({{ site.url }}/assets/images/vs_code_remote_containers.png)  
-There is no difference when developing with Visual Studio Code Remote - Containers extension. If, for example, we want to run the Flutter application in debug mode, all we have to do is install the Dart Debug Extension in Chrome and run the application using following launch command: 
+There is no difference when developing with Visual Studio Code Remote - Containers extension. If, for example, we want to run the Flutter application in debug mode, all we have to do is install the Dart Debug Extension in Chrome. To run the application use following launch command: 
+
 ```sh
 flutter run -d web-server --web-port $FLUTTER_WEB_PORT
 ```
+
+`FLUTTER_WEB_PORT` is set to 8090 in `Dockerfile_dev` so if you use VS Code extension then your application will start using this port. 
+
 If you want to debug please use the added launch configuration:
 ```json
 {
@@ -115,6 +119,18 @@ If you want to debug please use the added launch configuration:
 ```
 
 Sometimes VS Code shows you errors in the code, click on the Remote-Containers extension icon and click on `Reopen ...` this should help (you can also ignore them when you want to just run the application). 
+In the directory with the GUI part of the project I have also included the `Dockerfile` configuration which allows you to build and run the constructed project:
+```
+FROM nginx:alpine
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+WORKDIR /usr/share/nginx/html
+COPY build/web .
+```
+This is multistage configuration. First part prepares Flutter environment and build application and then second part is Nginx server with basic configuration used to run build. To build a project image simply build image using following command:
+
+```
+docker build -t flutter-kotlin-gui .
+```
 
 ### Spring Boot API application
 The application acting as the project API is written with Kotlin and Spring Boot 2 using the Spring WebFlux module. The application has two endpoints:
@@ -204,7 +220,7 @@ class KeycloakRealmRoleConverter : JwtAuthenticationConverter() {
 }
 
 ```
-I also added a simplified CORS filter configuration that allows you to connect from any foreign domain. Of course, this is not recommended in the set-up and should be avoided in production environment:
+I also added a simplified CORS filter configuration that allows you to connect from any foreign domain. Of course, this settung is not recommended in the set-up and should be adjusted in production environment:
 ```kotlin
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.reactive.config.CorsRegistry
@@ -319,7 +335,7 @@ jib {
 }
 
 ```
-As you can see, I added a jib plugin that allows you to easily build a docker image with the application.
+As you can see, I added a jib plugin that allows to easily build a docker image with the application.
 
 You can run API application using:
 ```sh
@@ -332,9 +348,27 @@ or build docker image using:
 The project requires Java version >= 11.
 
 ### Running whole project
-If you build all the images following the instructions in the above sections, you can run all parts of the project (API, GUI, Keycloak) with one command issued in the root of the project.
+If you build all the images following the instructions in the above sections, you can run all parts of the project (API, GUI, Keycloak) with one command issued in the root of the project:
+```
+docker-compose up
+```
+The application interface looks like this:
+![app_interface_1_img]({{ site.url }}/assets/images/app_interface_1.png)  
+There are two buttons in the middle. One runs the endpoint `/secured` and the second is for`/not-secured` endpoint. In the upper right corner you can see the username, which if the user is not logged in is `null` (yes, I know it's ugly). There is an icon next to the username that leads to the login page.
 
-In the `curl-scripts` directory, I created some useful curl scripts that calls to the secured and insecure API. Thanks to them, you can check the API and Keycloak operation.
+![app_interface_3_img]({{ site.url }}/assets/images/app_interface_2.png)  
+If you click on the icon next to the username, you will be taken to the login page. You can login using the user data added in Keycloak in our imported realm configuration (username -> `user` , password -> `password`).
+
+![app_interface_3_img]({{ site.url }}/assets/images/app_interface_3.png)  
+
+After logging in successfully, you will be redirected back to the home page where you can try out the `/secured` endpoint.
+
+As an extra, in the `curl-scripts` directory, I created some useful curl scripts that calls to the secured and insecure API. Thanks to them, you can check the API and Keycloak operation.
+#### What is missing
+Certainly many things. But it wasn't my goal to implement everything. I think the most important shortcomings are:
+- user after clicking on endpoint `/ secured` should be taken to login
+- JWT token expires after some time (can be set in Keycloak), should be refreshed using refresh token
+- the token is stored in local storage, it is not an ideal solution in terms of security.
 ### Summary
 This is it! You can find all the source code in my repository [GitHub account](https://github.com/k0staa/Code-Addict-Repos/tree/master/flutter-spring-kotlin-web). 
 Have fun and thanks for reading!
