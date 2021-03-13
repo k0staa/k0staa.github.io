@@ -1,6 +1,6 @@
 ---
-title:  "How to write the first Kotlin code in Java project"
-excerpt: "Adding Kotlin to an existing multi-module Java project"
+title:  "Authentication and authorization in Flutter For Web using Keycloak and Spring Boot 2 application as resource server"
+excerpt: "Authenticate in Keycloak and authorize with returned JWT token in Spring Boot 2 Web Flux API"
 header:
   overlay_image: /assets/images/post_teaser.jpeg
   overlay_filter: 0.5 # same as adding an opacity of 0.5 to a black background
