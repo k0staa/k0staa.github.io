@@ -168,7 +168,7 @@ flutter:
 ```
 I left the generated comments but the most important is the list of libraries under the `dependencies` section. As you can see, in addition to the SDK, I used the `http` library which provides the http client,`flutter_flavor` which allows to pass parameters to the application (this way I pass the main API address). The `shared_preferences` library is also important, it gives access to local storage in the web application, and on other platforms access to application databases.
 
-When writing an application in Flutter, we create the code mainly in the `lib` and` test` directory, the rest of the directories are intended for individual platforms and their task is to run the code built (for the platform). Of course, when developing for mobile platforms, we will probably do at least some configuration in this platforms.
+When writing an application in Flutter, we create the code mainly in the `lib` and` test` directory, the rest of the directories are intended for individual platforms and their task is to run the  builded code (for the platform). Of course, when developing for mobile platforms, we will probably tweak something platform sepcific source code ,at least some basic configuration.
 
 Let's start with the main file:
 
@@ -350,10 +350,10 @@ class _UserHomePageState extends State<UserHomePage> {
 }
 
 ```
-The `FlutterApiDemoApp` class itself is rather simple and just defines the page title and the home part. As you can see I use another class for home part -> `UserHomePage` which extends `StatefulWidget`. It is a more complicated class, but I will cover it one by one:
- - because it extends `StatefulWidget` we can override `creteState`. This method returns `_UserHomePageState` so it became state of the `UserHomePage`.
- - The state of our application is two variables: `String _serverMessage` and `_serverMessageStyleColor`. There are two methods `_updateServerMessage` and `_updateServerMessageStyleColor` that deal with changing state.
- - The `_fetchSecuredServerMessage` and `_fetchNotSecuredServerMessage` methods are used when the buttons on the home page are pressed. (one for the `/secured` endpoint and the other for`/not-secured`). They both use `RestApiService` to establish a connection and update the state using a message from the API server and color. Blue in case of success and red in case of failure.
+The `FlutterApiDemoApp` class itself is rather simple and just defines the page title and the home part. As you can see I use another class for home part -> `UserHomePage` which extends `StatefulWidget`. It is a more complicated one, but I will cover it one by one:
+ - because it extends `StatefulWidget` we can override `creteState` method . This method returns `_UserHomePageState` which is state of the `UserHomePage`.
+ - the state of our application is two variables: `String _serverMessage` and `Color _serverMessageStyleColor`. There are two methods `_updateServerMessage` and `_updateServerMessageStyleColor` that deal with changing state.
+ - the `_fetchSecuredServerMessage` and `_fetchNotSecuredServerMessage` methods are used when the buttons on the home page are pressed. (one for the `/secured` endpoint and the other for`/not-secured`). They both use `RestApiService` to establish a connection and update the state using a message from the API server and color. Blue in case of success and red in case of failure.
 
 Let's take a look at the `RestApiService` service which is used to connect to the API:
 ```dart
@@ -423,7 +423,7 @@ class RestApiService {
 }
 
 ```
-The service is a singleton and hence the `getInstance` method. There are two important methods `apiGetSecured` and `apiGetNotSecured` that are used to connect to the API. The `apiGetNotSecured` method is simple and just does an http GET request and then parses the server's response into the `ApiResponse` class. The second method is more complicated because if we want to connect to a secured endpoint, we must have a JWT token. The JWT token is added to the header in the `createAuthHeader` method. The token is extracted in it using the `retriveAccessToken` method from the` SessionStorageService` service. Let's take a look at this service.
+The service is a singleton and hence the `getInstance` method. There are two important methods `apiGetSecured` and `apiGetNotSecured` that are used to connect to the API. The `apiGetNotSecured` method is simple and just does an http GET request and then parses the server's response into the `ApiResponse` class. The second method is more complicated because if we want to connect to a secured endpoint, we must have a JWT token in the headers of that request. The JWT token is added to the header in the `createAuthHeader` method. The token is extracted in it using the `retriveAccessToken` method from the` SessionStorageService` service. Let's take a look at this service.
 ```dart
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -519,7 +519,7 @@ class LoginPage extends StatelessWidget {
   }
 }
 ```
-It is a very simple widget. It displays the input fields for username and password, and after pressing the `Log In` button, the method `attemptLogIn` is triggered. If login is successful, you will be redirected to `UserHomePage` with your username, if not message is displayed. The X method uses the service `AuthService` which I will describe now.
+It is a very simple widget. It displays the input fields for username and password, and after pressing the `Log In` button, the method `attemptLogIn` is triggered. If login is successful, you will be redirected to `UserHomePage` with your username, if not message is displayed. The `attemptLogIn` method uses the service `AuthService` which I will describe now.
 ```dart
 import 'package:flutter/foundation.dart';
 import 'package:gui/constants/api_path.dart';
@@ -559,6 +559,7 @@ class AuthService {
 }
 ```
 This service has one method and one task, to authenticate the user in Keycloak and, if successful, save the JWT token.
+
 I have described the entire code. I did not paste the code of the DTO models and the class containing constant fields used by services. You can see it in my repository :smiley:
 
 #### Using VS Code Remote - Containers extension to develop flutter app
